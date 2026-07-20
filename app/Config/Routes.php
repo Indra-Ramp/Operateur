@@ -15,7 +15,7 @@ $routes->group('client', function($routes){
     $routes->post('retrait', 'OperationController::retrait');
     $routes->post('transfert', 'OperationController::transfert');
 });
-$routes->get('/', 'Home::index');
+$routes->get('/', 'AuthController::index');
 $routes->group('operateur', function($routes) {
     $routes->get('prefix', 'PrefixeController::list');
     $routes->post('prefix/new', 'PrefixeController::addPrefix');

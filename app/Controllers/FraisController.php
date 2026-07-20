@@ -9,12 +9,14 @@
         function listOperation() {
             $typeOperationModel = new TypeOperationModel();
             $data['operations'] = $typeOperationModel->where('label !=', 'depot')->findAll();
+            $data['activePage'] = 'frais';
             return view('operateur/list_operations', $data);
         }
 
         function list($idType) {
             $trancheModel = new TrancheModel();
             $data['list'] = $trancheModel->where("id_type", $idType)->findAll();
+            $data['activePage'] = 'frais';
             return view('operateur/list_fees', $data);
         }
 
