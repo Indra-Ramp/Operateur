@@ -8,7 +8,7 @@ class OperationModel extends Model
 {
     protected $table = 'operation';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track'];
+    protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track', 'id_operateur'];
 
     public function getSolde($idCompte)
     {

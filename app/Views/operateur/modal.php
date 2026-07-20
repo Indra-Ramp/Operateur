@@ -182,6 +182,13 @@
                     </span>
                     <span class="font-label-md text-label-md">Prefixes</span>
                 </a>
+                <a class="<?= $baseClass ?> <?= ($activePage === 'other') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/operateur/autres') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'other') ? '1' : '0' ?>;">
+                        person_pin_circle
+                    </span>
+                    <span class="font-label-md text-label-md">Autres operateurs</span>
+                </a>
                 <!-- Lien Statistiques -->
                 <a class="<?= $baseClass ?> <?= ($activePage === 'stats') ? $activeClass : $inactiveClass ?>"
                 href="<?= base_url('/operateur/stats') ?>">

@@ -7,7 +7,7 @@
     class PrefixeModel extends Model{
         protected $table = 'prefixe';
         protected $primaryKey = 'id';
-        protected $allowedFields = ['label', 'created_at'];
+        protected $allowedFields = ['label', 'created_at', 'id_operateur'];
         protected $validationRules = [
             'label' => 'required|is_unique[prefixe.label]'
         ];
