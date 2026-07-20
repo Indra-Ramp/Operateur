@@ -15,9 +15,20 @@
   - Configuration prefixe :
     - Creation fonction PrefixeController::displayForm
     - Creation fonction PrefixeController::addPrefix
-  - Creation des Routes :
-    - GET:/operateur/prefix
-    - POST:/operateur/prefix/new
+    - Creation des Routes :
+      - GET:/operateur/prefix
+      - POST:/operateur/prefix/new
+  - Configuration des frais :
+    - Insertion des types d'operation en base
+    - Creation des fonctions :
+      - FraisController::listOperation
+      - FraisController::storeOperation
+      - FraisController::list
+      - FraisController::update
+    - Creation des routes :
+      - GET:/operateur/choose-operation
+      - GET:/operateur/list-fees
+      - POST:/operateur/fee/update 
 ## ETU004086:
 - Creation de repository (5 minutes)
 - Creation base de donnees

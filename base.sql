@@ -20,12 +20,7 @@ CREATE TABLE prefixe(
 
 CREATE TABLE compte(
     id INTEGER PRIMARY KEY ,
-    nom VARCHAR(50),
-    prenom VARCHAR(50),
-    date_naissance DATE,
-    gender VARCHAR(10),
-    tel VARCHAR(10),
-    adresse VARCHAR(50)
+    tel VARCHAR(10)
 );
 
 CREATE TABLE operation(
@@ -41,3 +36,6 @@ CREATE TABLE operation(
 );
 
 CREATE INDEX idx_tel ON compte(tel);
+
+INSERT INTO type_operation (label) VALUES
+('retrait'), ('transfert'), ('depot');

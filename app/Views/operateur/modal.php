@@ -130,6 +130,7 @@
             backdrop-filter: blur(4px);
         }
     </style>
+    <?= $this->renderSection('custom_style') ?>
 </head>
 
 <body class="bg-background">
