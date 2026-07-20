@@ -21,11 +21,6 @@
         class="material-symbols-outlined p-sm text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full">notifications</button>
       <button
         class="material-symbols-outlined p-sm text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full">help</button>
-      <button
-        class="hidden lg:flex items-center gap-xs text-primary font-bold hover:bg-primary-container/10 px-md py-sm rounded-lg transition-colors">
-        <span class="material-symbols-outlined">logout</span>
-        <span class="font-label-md">Logout</span>
-      </button>
     </div>
   </header>
   <!-- Main Content Canvas -->
@@ -75,15 +70,22 @@
                   $errorId = session()->getFlashdata('error_id'); 
                   ?>
 
-                  <?php foreach($list as $l): ?>
-                      <?php 
-                      $isCurrentErrorRow = ($errorId == $l['id']);
-                      
-                      // On ne récupère la valeur 'old' que si c'est la ligne qui vient d'être soumise
-                      $valMontant1 = $isCurrentErrorRow ? (old('montant1') ?? $l['montant1']) : $l['montant1'];
-                      $valMontant2 = $isCurrentErrorRow ? (old('montant2') ?? $l['montant2']) : $l['montant2'];
-                      $valFrais    = $isCurrentErrorRow ? (old('frais')    ?? $l['frais'])    : $l['frais'];
-                      ?>
+                  <?php if (empty($list)): ?>
+                      <tr>
+                          <td colspan="4" class="px-lg py-xl text-center text-sm text-on-surface-variant">
+                              Pas de données pour l'instant.
+                          </td>
+                      </tr>
+                  <?php else: ?>
+                      <?php foreach($list as $l): ?>
+                          <?php 
+                          $isCurrentErrorRow = ($errorId == $l['id']);
+                          
+                          // On ne récupère la valeur 'old' que si c'est la ligne qui vient d'être soumise
+                          $valMontant1 = $isCurrentErrorRow ? (old('montant1') ?? $l['montant1']) : $l['montant1'];
+                          $valMontant2 = $isCurrentErrorRow ? (old('montant2') ?? $l['montant2']) : $l['montant2'];
+                          $valFrais    = $isCurrentErrorRow ? (old('frais')    ?? $l['frais'])    : $l['frais'];
+                          ?>
                       <tr class="hover:bg-primary-container/5 transition-colors">
                           <form action="<?= base_url('/operateur/fee/update') ?>" method="post">
                               <input type="hidden" name="id_type" value="<?= $idType ?>">
@@ -130,6 +132,7 @@
                           </form>
                       </tr>
                   <?php endforeach; ?>
+                  <?php endif; ?>
                 <!-- <tr class="hover:bg-primary-container/5 transition-colors">
                   <td class="px-lg py-md">
                     <input type="text" value="5 001 FCFA"
@@ -219,16 +222,6 @@
             </ul>
           </div>
           <!-- Quick Action -->
-          <div
-            class="bg-surface-container border border-dashed border-outline rounded-xl p-lg flex flex-col items-center text-center space-y-md">
-            <span class="material-symbols-outlined text-4xl text-on-surface-variant/30">file_upload</span>
-            <div>
-              <p class="font-label-md text-label-md font-bold">Importation en masse</p>
-              <p class="text-body-md font-body-md text-on-surface-variant">Téléchargez un fichier CSV pour configurer
-                tout le barème d'un coup.</p>
-            </div>
-            <button class="text-primary font-bold hover:underline transition-all">Télécharger le modèle CSV</button>
-          </div>
         </aside>
       </div>
     </div>

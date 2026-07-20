@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Operator Configuration - Prefixes</title>
+    <title>Mobile Money</title>
     <!-- Google Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
@@ -139,52 +139,64 @@
         class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant flex flex-col p-md z-40">
         <!-- Brand / Header -->
         <div class="mb-xl px-sm">
-            <h1 class="font-headline-md text-headline-md font-bold text-primary mb-xs">Operator Console</h1>
-            <p class="font-label-md text-label-md text-on-surface-variant opacity-70">System Administrator</p>
+            <h1 class="font-headline-md text-headline-md font-bold text-primary mb-xs">Console de l'operateur</h1>
+            <p class="font-label-md text-label-md text-on-surface-variant opacity-70">Administrateur systeme</p>
         </div>
         <!-- Main Tabs -->
         <nav class="flex-grow space-y-1">
-            <a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-transform duration-200 hover:translate-x-1 rounded-lg"
-                href="#">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span class="font-label-md text-label-md">Dashboard</span>
-            </a>
-            <a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-transform duration-200 hover:translate-x-1 rounded-lg"
-                href="#">
-                <span class="material-symbols-outlined">swap_horiz</span>
-                <span class="font-label-md text-label-md">Transactions</span>
-            </a>
-            <!-- ACTIVE TAB: Operators (Matches 'Prefixes' context) -->
-            <a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg px-md py-sm transition-transform duration-200 hover:translate-x-1"
-                href="#">
-                <span class="material-symbols-outlined"
-                    style="font-variation-settings: 'FILL' 1;">person_pin_circle</span>
-                <span class="font-label-md text-label-md">Operators</span>
-            </a>
-            <a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-transform duration-200 hover:translate-x-1 rounded-lg"
-                href="#">
-                <span class="material-symbols-outlined">account_balance_wallet</span>
-                <span class="font-label-md text-label-md">Liquidity</span>
-            </a>
-            <a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-transform duration-200 hover:translate-x-1 rounded-lg"
-                href="#">
-                <span class="material-symbols-outlined">assessment</span>
-                <span class="font-label-md text-label-md">Reports</span>
-            </a>
+            <?php
+                // Classes de base communes à tous les boutons
+                $baseClass = "flex items-center gap-md rounded-lg px-md py-sm transition-transform duration-200 hover:translate-x-1";
+
+                // Classes spécifiques selon l'état
+                $activeClass = "bg-secondary-container text-on-secondary-container";
+                $inactiveClass = "text-on-surface-variant hover:bg-surface-container-highest";
+
+                // Valeur par défaut si non définie dans le contrôleur
+                $activePage = $activePage ?? ''; 
+                ?>
+
+                <!-- Lien Dashboard -->
+                <a class="<?= $baseClass ?> <?= ($activePage === 'dashboard') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/dashboard') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'dashboard') ? '1' : '0' ?>;">
+                        dashboard
+                    </span>
+                    <span class="font-label-md text-label-md">Dashboard</span>
+                </a>
+
+                <!-- Lien Frais -->
+                <a class="<?= $baseClass ?> <?= ($activePage === 'frais') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/operateur/choose-operation') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'frais') ? '1' : '0' ?>;">
+                        swap_horiz
+                    </span>
+                    <span class="font-label-md text-label-md">Frais</span>
+                </a>
+
+                <!-- Lien Prefixes -->
+                <a class="<?= $baseClass ?> <?= ($activePage === 'prefixes') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/operateur/prefix') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'prefixes') ? '1' : '0' ?>;">
+                        person_pin_circle
+                    </span>
+                    <span class="font-label-md text-label-md">Prefixes</span>
+                </a>
+                <!-- Lien Statistiques -->
+                <a class="<?= $baseClass ?> <?= ($activePage === 'stats') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/operateur/stats') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'stats') ? '1' : '0' ?>;">
+                        bar_chart
+                    </span>
+                    <span class="font-label-md text-label-md">Statistiques</span>
+                </a>
         </nav>
-        <!-- CTA -->
-        <div class="mt-xl px-sm">
-            <button
-                class="w-full bg-primary text-on-primary py-sm rounded-lg font-label-md text-label-md shadow-sm hover:translate-y-[-1px] transition-all">
-                New Transaction
-            </button>
-        </div>
         <!-- Footer Tabs -->
         <div class="mt-auto pt-xl space-y-1">
             <a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-transform duration-200 hover:translate-x-1 rounded-lg"
                 href="#">
                 <span class="material-symbols-outlined">settings</span>
-                <span class="font-label-md text-label-md">Settings</span>
+                <span class="font-label-md text-label-md">Parametres</span>
             </a>
             <a class="flex items-center gap-md text-on-surface-variant px-md py-sm hover:bg-surface-container-highest transition-transform duration-200 hover:translate-x-1 rounded-lg"
                 href="#">

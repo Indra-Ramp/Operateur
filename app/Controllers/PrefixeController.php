@@ -6,6 +6,7 @@
         function list() {
             $prefixeModel = new PrefixeModel();
             $data['prefixes'] = $prefixeModel->findAll();
+            $data['activePage'] = 'prefixes';
             return view('operateur/prefix', $data);
         }
 
