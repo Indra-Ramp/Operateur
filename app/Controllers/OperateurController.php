@@ -24,7 +24,7 @@
         }
 
         public function updateCommission() {
-            $post = $this->request->getPost();
+            $post = $this->request->getPost();;
             $commissionModel = new CommissionModel();
             $commissionData = $commissionModel->where('id_operateur', $post['id_operateur'])->first();
             $post['id'] = $commissionData['id'] ?? null;
