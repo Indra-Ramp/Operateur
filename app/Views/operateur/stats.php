@@ -1,4 +1,5 @@
 <?= $this->extend('operateur/modal') ?>
+
 <?= $this->section('custom_style') ?>
 <style>
   .chart-bar {
@@ -14,24 +15,6 @@
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #2563eb, #38bdf8);
-  }
-
-  .sparkline {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 0.65rem;
-    align-items: end;
-    min-height: 120px;
-  }
-
-  .sparkline div {
-    border-radius: 999px;
-    background: #2563eb;
-    transition: transform 0.2s ease;
-  }
-
-  .sparkline div:hover {
-    transform: scaleY(1.1);
   }
 </style>
 <?= $this->endSection() ?>
@@ -104,13 +87,46 @@
               <span>Derniers 7 jours</span>
               <span>Valeur en FCFA</span>
             </div>
-            <?php $maxDailyValue = ! empty($dailyValues) ? max($dailyValues) : 1; ?>
-            <div class="sparkline">
-              <?php foreach ($dailyValues as $value): ?>
-                <?php $height = min(100, 10 + ($value / max(1, $maxDailyValue) * 90)); ?>
-                <div style="height:<?= esc($height) ?>%"></div>
-              <?php endforeach ?>
+            <div class="flex items-center justify-between mb-4">
+    <div class="flex gap-2">
+        <!-- Bouton Retour au Bilan Global -->
+        <a href="<?= base_url('operateur/stats') ?>" 
+           class="px-4 py-2 <?= $isGlobalMode ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?> rounded text-sm font-medium">
+            Vue Globale
+        </a>
+
+        <!-- Bouton Semaine Précédente (Bascule sur la semaine en cours si on était en global) -->
+        <a href="<?= base_url('operateur/stats?week_offset=' . ($isGlobalMode ? 0 : $weekOffset - 1)) ?>" 
+           class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">
+            ← Semaine précédente
+        </a>
+    </div>
+
+    <!-- Affichage dynamique de la période -->
+    <span class="text-lg font-semibold text-gray-700">
+        <?php if ($isGlobalMode): ?>
+            Bilan Historique Global (Graphique : 7 derniers jours)
+        <?php else: ?>
+            Période du : <?= date('d/m/Y', strtotime($startDate)) ?> au <?= date('d/m/Y', strtotime($endDate)) ?>
+        <?php endif; ?>
+    </span>
+
+    <!-- Bouton Semaine Suivante -->
+    <?php if (!$isGlobalMode && $weekOffset < 0): ?>
+        <a href="<?= base_url('operateur/stats?week_offset=' . ($weekOffset + 1)) ?>" 
+           class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">
+            Semaine suivante →
+        </a>
+    <?php else: ?>
+        <span class="px-4 py-2 bg-gray-100 text-gray-400 rounded text-sm cursor-not-allowed">
+            Semaine actuelle
+        </span>
+    <?php endif; ?>
+</div>
+            <div class="relative h-[250px] w-full">
+              <canvas id="revenueChart"></canvas>
             </div>
+            
             <div class="mt-4 grid grid-cols-2 gap-sm text-sm text-on-surface-variant">
               <div class="rounded-3xl bg-surface-container-highest p-sm">
                 <p class="font-medium text-on-surface">Retrait</p>
@@ -204,4 +220,79 @@
     </section>
   </div>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = <?= json_encode(array_values($dailyValues ?? [0,0,0,0,0,0,0])) ?>;
+    const chartLabels = ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'Hier', 'Aujourd\'hui'];
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Volume (FCFA)',
+                data: chartData,
+                backgroundColor: '#2563eb',
+                hoverBackgroundColor: '#38bdf8',
+                borderRadius: 8,
+                borderSkipped: false,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 12,
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 14, weight: 'bold' },
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.parsed.y;
+                            return value.toLocaleString('fr-FR') + ' FCFA';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f1f5f9',
+                        drawBorder: false,
+                    },
+                    border: { display: false },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 11 },
+                        callback: function(value) {
+                            return value >= 1000 ? (value/1000) + 'k' : value;
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false,
+                    },
+                    border: { display: false },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 12 }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 <?= $this->endSection() ?>

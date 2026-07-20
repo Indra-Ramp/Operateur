@@ -21,74 +21,139 @@
             return view('operateur/list_fees', $data);
         }
 
-        function stats() {
-            $operationModel = new OperationModel();
+        public function stats() 
+{
+    $operationModel = new OperationModel();
 
-            $startDate = $this->request->getGet('start_date') ?? date('Y-m-d', strtotime('-29 days'));
-            $endDate = $this->request->getGet('end_date') ?? date('Y-m-d');
+    // 1. Détection du mode : Semaine spécifique OU Bilan Global
+    $weekOffsetParam = $this->request->getGet('week_offset');
+    $isGlobalMode = ($weekOffsetParam === null);
 
-            if (strtotime($startDate) > strtotime($endDate)) {
-                [$startDate, $endDate] = [$endDate, $startDate];
-            }
-
-            $operations = $operationModel
-                ->select('operation.*, t.label as type_label')
-                ->join('type_operation t', 'operation.id_type = t.id')
-                ->where('operation.date_track >=', $startDate)
-                ->where('operation.date_track <=', $endDate)
-                ->orderBy('operation.date_track', 'ASC')
-                ->findAll();
-
-            $transferOps = array_values(array_filter($operations, fn($op) => $op['type_label'] === 'transfert'));
-            $withdrawalOps = array_values(array_filter($operations, fn($op) => $op['type_label'] === 'retrait' && empty($op['id_compte2'])));
-
-            $transferFees = 0;
-            foreach ($transferOps as $operation) {
-                $transferFees += $operationModel->getFraisForMontant($operation['montant'], 2);
-            }
-
-            [$withdrawalFees, $withdrawalCount, $withdrawalAmount, $withdrawalDailyFees] = $this->calculateWithdrawalFeeStats($withdrawalOps, $operationModel);
-
-            $totalFees = $transferFees + $withdrawalFees;
-            $transactionCount = $withdrawalCount + count($transferOps);
-            $averageFee = $transactionCount > 0 ? round($totalFees / $transactionCount) : 0;
-
-            $dailyLabels = [];
-            $dailyValues = [];
-            $period = new \DatePeriod(new \DateTime($startDate), new \DateInterval('P1D'), (new \DateTime($endDate))->modify('+1 day'));
-            foreach ($period as $date) {
-                $dayKey = $date->format('Y-m-d');
-                $dailyLabels[] = $date->format('d M');
-                $dailyValues[] = $withdrawalDailyFees[$dayKey] ?? 0;
-            }
-
-            $data = [
-                'activePage' => 'stats',
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-                'summary' => [
-                    'withdrawalFees' => $withdrawalFees,
-                    'transferFees' => $transferFees,
-                    'totalFees' => $totalFees,
-                    'averageFee' => $averageFee,
-                    'transactionCount' => $transactionCount,
-                ],
-                'breakdown' => [
-                    ['label' => 'Retrait', 'total' => $withdrawalFees, 'count' => $withdrawalCount, 'avg' => $withdrawalCount > 0 ? round($withdrawalFees / $withdrawalCount) : 0],
-                    ['label' => 'Transfert', 'total' => $transferFees, 'count' => count($transferOps), 'avg' => count($transferOps) > 0 ? round($transferFees / count($transferOps)) : 0],
-                    ['label' => 'Total', 'total' => $totalFees, 'count' => $transactionCount, 'avg' => $averageFee],
-                ],
-                'dailyLabels' => $dailyLabels,
-                'dailyValues' => $dailyValues,
-                'tableRows' => [
-                    ['title' => 'Retrait', 'amount' => $withdrawalFees, 'transactions' => $withdrawalCount, 'margin' => $withdrawalCount > 0 ? '18,4 %' : '0 %'],
-                    ['title' => 'Transfert', 'amount' => $transferFees, 'transactions' => count($transferOps), 'margin' => count($transferOps) > 0 ? '14,2 %' : '0 %'],
-                    ['title' => 'Total', 'amount' => $totalFees, 'transactions' => $transactionCount, 'margin' => '16,5 %'],
-                ],
-            ];
-
-            return view('operateur/stats', $data);
+    if (!$isGlobalMode) {
+        // --- MODE SEMAINE ---
+        $weekOffset = (int)$weekOffsetParam;
+        $currentDate = new \DateTime();
+        if ($weekOffset !== 0) {
+            $currentDate->modify("$weekOffset weeks");
         }
+        
+        $monday = clone $currentDate;
+        $monday->modify('monday this week');
+        $sunday = clone $currentDate;
+        $sunday->modify('sunday this week');
+
+        $startDate = $monday->format('Y-m-d');
+        $endDate = $sunday->format('Y-m-d');
+
+        // Récupération ciblée sur la semaine
+        $withdrawalOps = $operationModel->where('date_track >=', $startDate)->where('date_track <=', $endDate)->where('id_type', 1)->orderBy('date_track', 'ASC')->findAll();
+        $transferOps   = $operationModel->where('date_track >=', $startDate)->where('date_track <=', $endDate)->where('id_type', 2)->orderBy('date_track', 'ASC')->findAll();
+        
+        $graphStartDate = $startDate;
+        $graphEndDate   = $endDate;
+    } else {
+        // --- MODE BILAN GLOBAL ---
+        $weekOffset = null;
+        
+        // Récupération de l'intégralité absolue des opérations
+        $withdrawalOps = $operationModel->where('id_type', 1)->orderBy('date_track', 'ASC')->findAll();
+        $transferOps   = $operationModel->where('id_type', 2)->orderBy('date_track', 'ASC')->findAll();
+
+        // Détermination de la période du graphique (7 derniers jours par rapport à aujourd'hui)
+        $graphEndDate   = date('Y-m-d');
+        $graphStartDate = date('Y-m-d', strtotime('-6 days'));
+        
+        $startDate = 'Origine';
+        $endDate   = 'Aujourd\'hui';
+    }
+
+    // 2. Initialisation de la structure fixe du graphique (Toujours 7 jours bien définis)
+    $dailyFeesStructure = [];
+    $graphPeriod = new \DatePeriod(
+        new \DateTime($graphStartDate), 
+        new \DateInterval('P1D'), 
+        (new \DateTime($graphEndDate))->modify('+1 day')
+    );
+    
+    foreach ($graphPeriod as $date) {
+        $dailyFeesStructure[$date->format('Y-m-d')] = 0;
+    }
+
+    // 3. Cumul des Retraits (Globaux + Ventilation graphique si dans la zone du graphe)
+    $withdrawalFees = 0;
+    $withdrawalCount = count($withdrawalOps);
+    foreach ($withdrawalOps as $operation) {
+        $fee = $operationModel->getFraisForMontant($operation['montant'], 1);
+        $withdrawalFees += $fee;
+
+        $dateRaw = isset($operation['date_track']) ? trim($operation['date_track']) : null;
+        if ($dateRaw) {
+            $dayKey = substr($dateRaw, 0, 10);
+            if (array_key_exists($dayKey, $dailyFeesStructure)) {
+                $dailyFeesStructure[$dayKey] += $fee;
+            }
+        }
+    }
+
+    // 4. Cumul des Transferts (Globaux + Ventilation graphique si dans la zone du graphe)
+    $transferFees = 0;
+    $transferCount = count($transferOps);
+    foreach ($transferOps as $operation) {
+        $fee = $operationModel->getFraisForMontant($operation['montant'], 2);
+        $transferFees += $fee;
+
+        $dateRaw = isset($operation['date_track']) ? trim($operation['date_track']) : null;
+        if ($dateRaw) {
+            $dayKey = substr($dateRaw, 0, 10);
+            if (array_key_exists($dayKey, $dailyFeesStructure)) {
+                $dailyFeesStructure[$dayKey] += $fee;
+            }
+        }
+    }
+
+    // 5. Indicateurs globaux ou hebdomadaires de synthèse
+    $totalFees = $transferFees + $withdrawalFees;
+    $transactionCount = $withdrawalCount + $transferCount;
+    $averageFee = $transactionCount > 0 ? round($totalFees / $transactionCount) : 0;
+
+    // 6. Extraction pour Chart.js
+    $dailyLabels = [];
+    $dailyValues = [];
+    foreach ($dailyFeesStructure as $dateStr => $totalDayFee) {
+        $dailyLabels[] = date('d M', strtotime($dateStr));
+        $dailyValues[] = $totalDayFee;
+    }
+
+    // 7. Envoi à la vue
+    $data = [
+        'activePage'   => 'stats',
+        'isGlobalMode' => $isGlobalMode,
+        'startDate'    => $startDate,
+        'endDate'      => $endDate,
+        'weekOffset'   => $weekOffset,
+        'summary'      => [
+            'withdrawalFees'   => $withdrawalFees,
+            'transferFees'     => $transferFees,
+            'totalFees'        => $totalFees,
+            'averageFee'       => $averageFee,
+            'transactionCount' => $transactionCount,
+        ],
+        'breakdown'    => [
+            ['label' => 'Retrait', 'total' => $withdrawalFees, 'count' => $withdrawalCount, 'avg' => $withdrawalCount > 0 ? round($withdrawalFees / $withdrawalCount) : 0],
+            ['label' => 'Transfert', 'total' => $transferFees, 'count' => $transferCount, 'avg' => $transferCount > 0 ? round($transferFees / $transferCount) : 0],
+            ['label' => 'Total', 'total' => $totalFees, 'count' => $transactionCount, 'avg' => $averageFee],
+        ],
+        'dailyLabels'  => $dailyLabels,
+        'dailyValues'  => $dailyValues,
+        'tableRows'    => [
+            ['title' => 'Retrait', 'amount' => $withdrawalFees, 'transactions' => $withdrawalCount, 'margin' => $withdrawalCount > 0 ? '18,4 %' : '0 %'],
+            ['title' => 'Transfert', 'amount' => $transferFees, 'transactions' => $transferCount, 'margin' => $transferCount > 0 ? '14,2 %' : '0 %'],
+            ['title' => 'Total', 'amount' => $totalFees, 'transactions' => $transactionCount, 'margin' => '16,5 %'],
+        ],
+    ];
+
+    return view('operateur/stats', $data);
+}
 
         protected function calculateWithdrawalFeeStats(array $withdrawalOps, OperationModel $operationModel): array
         {
