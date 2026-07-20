@@ -4,10 +4,10 @@
 
     use CodeIgniter\Model;
 
-    class OperationModel extends Model{
+    class CompteModel extends Model{
         protected $table = 'compte';
         protected $primaryKey = 'id';
-        protected $allowedFields = ['label'];
+        protected $allowedFields = ['nom', 'prenom', 'date_naissance', 'tel', 'adresse'];
     }
 
 ?>

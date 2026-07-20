@@ -22,13 +22,13 @@
     - Insertion des types d'operation en base
     - Creation des fonctions :
       - FraisController::listOperation
-      - FraisController::storeOperation
       - FraisController::list
       - FraisController::update
     - Creation des routes :
       - GET:/operateur/choose-operation
-      - GET:/operateur/list-fees
+      - GET:/operateur/list-fees/{id}
       - POST:/operateur/fee/update 
+      - POST:/operateur/fee/add
 ## ETU004086:
 - Creation de repository (5 minutes)
 - Creation base de donnees

@@ -3,6 +3,8 @@ CREATE TABLE type_operation(
     label VARCHAR(20)
 );
 
+ALTER TABLE type_operation ADD description TEXT;
+
 CREATE TABLE tranche(
     id INTEGER PRIMARY KEY ,
     id_type INTEGER,
@@ -39,3 +41,16 @@ CREATE INDEX idx_tel ON compte(tel);
 
 INSERT INTO type_operation (label) VALUES
 ('retrait'), ('transfert'), ('depot');
+
+UPDATE type_operation SET description=
+"Opérations de retrait via agents ou distributeurs. Définissez des frais fixes ou en pourcentage."
+WHERE label = 'retrait';
+
+UPDATE type_operation SET description=
+"Envois de fonds de compte à compte ou vers l'externe. Ajustez les grilles tarifaires."
+WHERE label = 'transfert';
+
+UPDATE type_operation SET description=
+"Transactions de dépôt et alimentation de compte. Gérez les commissions agents."
+WHERE label = 'depot';
+
