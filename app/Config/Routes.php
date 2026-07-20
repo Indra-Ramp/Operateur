@@ -15,6 +15,7 @@ $routes->group('client', function($routes){
     $routes->post('depot', 'OperationController::depot');
     $routes->post('retrait', 'OperationController::retrait');
     $routes->post('transfert', 'OperationController::transfert');
+    $routes->post('transfert-multiple', 'OperationController::transfertMultiple');
 });
 $routes->get('/', 'AuthController::index');
 $routes->group('operateur', function($routes) {
@@ -25,7 +26,4 @@ $routes->group('operateur', function($routes) {
     $routes->get('stats', 'FraisController::stats');
     $routes->post('fee/add', 'FraisController::addFee');
     $routes->post('fee/update', 'FraisController::updateFee');
-    $routes->post('commission/update', 'OperateurController::updateCommission');
-    $routes->get('autres', 'OperateurController::list');
-    $routes->get('prefix/(:num)', 'OperateurController::listPrefix/$1');
 });

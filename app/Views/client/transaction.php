@@ -138,12 +138,14 @@
 <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-lg md:p-xl">
 <form class="space-y-xl" id="transactionForm" action="/client/transfert" method="post">
 <?php if (session()->getFlashdata('error')): ?>
-    <div class="rounded-lg border border-error text-error bg-error/10 px-md py-sm font-medium">
-        <?= session()->getFlashdata('error') ?>
+    <div class="rounded-lg border border-error text-error bg-error/10 px-md py-sm font-medium flex items-start gap-xs">
+        <span class="material-symbols-outlined text-base leading-none mt-[2px]">error</span>
+        <span><?= esc(session()->getFlashdata('error')) ?></span>
     </div>
 <?php elseif (session()->getFlashdata('success')): ?>
-    <div class="rounded-lg border border-primary text-primary bg-primary/10 px-md py-sm font-medium">
-        <?= session()->getFlashdata('success') ?>
+    <div class="rounded-lg border border-primary text-primary bg-primary/10 px-md py-sm font-medium flex items-start gap-xs">
+        <span class="material-symbols-outlined text-base leading-none mt-[2px]">check_circle</span>
+        <span><?= esc(session()->getFlashdata('success')) ?></span>
     </div>
 <?php endif ?>
 <input type="hidden" name="operation_type" id="operationType" value="transfer">
@@ -167,7 +169,16 @@
 </div>
 <!-- Step 2: Recipient (Conditional) -->
 <div class="space-y-md hidden opacity-0 transition-opacity duration-300" id="recipientSection">
+<div class="flex justify-between items-center">
 <label class="block font-headline-md text-on-surface">2. Recipient Details</label>
+<label class="flex items-center gap-xs cursor-pointer select-none">
+    <input class="rounded border-outline-variant text-primary focus:ring-primary" id="multiToggle" type="checkbox"/>
+    <span class="font-label-md text-on-surface-variant">Envoi multiple</span>
+</label>
+</div>
+
+<!-- Single recipient (default) -->
+<div id="singleRecipient">
 <div class="flex gap-sm">
     <div class="relative group w-1/3">
         <select class="h-12 w-full bg-surface-container-low px-md pr-sm border border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none rounded-lg" name="prefixe">
@@ -181,13 +192,27 @@
         <div class="absolute inset-y-0 left-0 flex items-center pl-md pointer-events-none">
             <span class="material-symbols-outlined text-outline" data-icon="phone_iphone">phone_iphone</span>
         </div>
-        <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" name="phone" id="destPhone" placeholder="0000000000" type="tel" inputmode="numeric" maxlength="10" />
+        <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" name="phone" id="destPhone" placeholder="0000000" type="tel" inputmode="numeric" maxlength="7" />
     </div>
 </div>
 <p class="font-label-md text-on-surface-variant flex items-center gap-xs">
 <span class="material-symbols-outlined text-sm" data-icon="info">info</span>
-Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au total).
+Sélectionnez le préfixe puis saisissez les 7 chiffres suivants du destinataire (10 chiffres au total, pas 10 après le préfixe).
 </p>
+</div>
+
+<!-- Multiple recipients -->
+<div class="hidden space-y-sm" id="multiRecipients">
+<div class="space-y-sm" id="multiRows"></div>
+<button class="flex items-center gap-xs px-md py-sm rounded-lg border border-dashed border-outline-variant text-primary hover:bg-primary-container/20 transition-colors font-label-md" id="addRecipientBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+Ajouter un destinataire
+</button>
+<p class="font-label-md text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+Le montant total saisi ci-dessous sera divisé équitablement entre tous les destinataires.
+</p>
+</div>
 </div>
 <!-- Step 3: Amount -->
 <div class="space-y-md" id="amountSection">
@@ -204,6 +229,12 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
 <button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="50000">50 000 Ar</button>
 <button id="btn-max" class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">Max</button>
 </div>
+<label class="flex items-start gap-sm pt-sm hidden" id="fraisOptionWrapper">
+<input class="mt-[3px] rounded border-outline-variant text-primary focus:ring-primary" id="inclureFrais" name="inclure_frais" type="checkbox" value="1"/>
+<span class="font-label-md text-on-surface-variant">
+Inclure les frais de retrait dans le montant envoyé <span class="text-on-surface-variant/70">(le destinataire reçoit alors le montant saisi moins les frais, au lieu de payer le montant + frais en plus)</span>
+</span>
+</label>
 </div>
 <!-- Action -->
 <div class="pt-lg border-t border-outline-variant">
@@ -286,6 +317,14 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
 </main>
 <script>
         const soldeDisponible = <?= (float) $soldeCompte ?>;
+        const SUITE_LENGTH = 7; // longueur de la suite après le préfixe (préfixe 3 + suite 7 = 10)
+        // Options du select préfixe, générées côté serveur, réutilisées pour
+        // chaque ligne destinataire ajoutée dynamiquement en mode multiple.
+        const prefixOptionsHtml = `<?= implode('', array_map(
+            fn ($p) => '<option value="' . esc($p['label'], 'attr') . '">+' . esc($p['label']) . '</option>',
+            $prefixes
+        )) ?>`;
+
         let currentOperation = 'transfer';
 
         function setOperation(type) {
@@ -310,14 +349,17 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
             const amountLabel = document.getElementById('amountLabel');
             const form = document.getElementById('transactionForm');
             const operationType = document.getElementById('operationType');
+            const fraisOptionWrapper = document.getElementById('fraisOptionWrapper');
+            const multiToggle = document.getElementById('multiToggle');
 
             if (type === 'transfer') {
                 recipientSection.classList.remove('hidden');
                 setTimeout(() => recipientSection.classList.remove('opacity-0'), 10);
-                destPhone.required = true;
-                amountLabel.innerText = '3. Transaction Amount';
-                form.action = '/client/transfert';
+                destPhone.required = ! multiToggle.checked;
+                amountLabel.innerText = multiToggle.checked ? '3. Montant total à répartir' : '3. Transaction Amount';
+                form.action = multiToggle.checked ? '/client/transfert-multiple' : '/client/transfert';
                 operationType.value = 'transfer';
+                fraisOptionWrapper.classList.remove('hidden');
             } else if (type === 'deposit') {
                 recipientSection.classList.add('opacity-0');
                 setTimeout(() => recipientSection.classList.add('hidden'), 300);
@@ -325,6 +367,7 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
                 amountLabel.innerText = '2. Transaction Amount';
                 form.action = '/client/depot';
                 operationType.value = 'depot';
+                fraisOptionWrapper.classList.add('hidden');
             } else {
                 recipientSection.classList.add('opacity-0');
                 setTimeout(() => recipientSection.classList.add('hidden'), 300);
@@ -332,8 +375,92 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
                 amountLabel.innerText = '2. Transaction Amount';
                 form.action = '/client/retrait';
                 operationType.value = 'retrait';
+                fraisOptionWrapper.classList.add('hidden');
             }
         }
+
+        // --- Envoi multiple : gestion des lignes destinataires ---
+
+        function buildRecipientRow() {
+            const row = document.createElement('div');
+            row.className = 'flex gap-sm items-center recipient-row';
+            row.innerHTML = `
+                <div class="relative group w-1/3">
+                    <select class="h-12 w-full bg-surface-container-low px-md pr-sm border border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none rounded-lg" name="prefixe[]">
+                        ${prefixOptionsHtml}
+                    </select>
+                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+                </div>
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-md pointer-events-none">
+                        <span class="material-symbols-outlined text-outline">phone_iphone</span>
+                    </div>
+                    <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none recipient-phone" name="phone[]" placeholder="0000000" type="tel" inputmode="numeric" maxlength="${SUITE_LENGTH}"/>
+                </div>
+                <button type="button" class="removeRecipientBtn p-sm text-error hover:bg-error/10 rounded-lg transition-colors" title="Retirer ce destinataire">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            `;
+
+            row.querySelector('.recipient-phone').addEventListener('input', function () {
+                this.value = this.value.replace(/\D/g, '').slice(0, SUITE_LENGTH);
+            });
+
+            row.querySelector('.removeRecipientBtn').addEventListener('click', () => {
+                const rows = document.querySelectorAll('#multiRows .recipient-row');
+                // On garde toujours au moins deux destinataires pour un envoi multiple.
+                if (rows.length > 2) {
+                    row.remove();
+                }
+            });
+
+            return row;
+        }
+
+        function addRecipientRow() {
+            document.getElementById('multiRows').appendChild(buildRecipientRow());
+        }
+
+        document.getElementById('addRecipientBtn').addEventListener('click', addRecipientRow);
+
+        document.getElementById('multiToggle').addEventListener('change', function () {
+            const singleRecipient = document.getElementById('singleRecipient');
+            const multiRecipients = document.getElementById('multiRecipients');
+            const destPhone = document.getElementById('destPhone');
+            const destPrefixe = singleRecipient.querySelector('select[name="prefixe"]');
+            const multiRows = document.getElementById('multiRows');
+
+            if (this.checked) {
+                singleRecipient.classList.add('hidden');
+                multiRecipients.classList.remove('hidden');
+                destPhone.required = false;
+                // On désactive les champs du mode simple pour qu'ils ne soient
+                // pas envoyés en même temps que prefixe[]/phone[] (sinon les
+                // deux jeux de champs entreraient en conflit côté serveur).
+                destPhone.disabled = true;
+                destPrefixe.disabled = true;
+
+                if (multiRows.children.length === 0) {
+                    addRecipientRow();
+                    addRecipientRow();
+                }
+
+                multiRows.querySelectorAll('select, input').forEach(el => { el.disabled = false; });
+            } else {
+                singleRecipient.classList.remove('hidden');
+                multiRecipients.classList.add('hidden');
+                destPhone.required = (currentOperation === 'transfer');
+                destPhone.disabled = false;
+                destPrefixe.disabled = false;
+
+                multiRows.querySelectorAll('select, input').forEach(el => { el.disabled = true; });
+            }
+
+            // Réapplique le libellé montant + l'action du formulaire pour l'état courant.
+            if (currentOperation === 'transfer') {
+                setOperation('transfer');
+            }
+        });
 
         // Initialize default state
         setOperation('transfer');
@@ -348,9 +475,11 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
             document.getElementById('montantInput').value = Math.max(0, Math.floor(soldeDisponible));
         });
 
-        // Digits-only, 10-digit recipient phone (matches PhoneHelper server-side).
+        // Chiffres uniquement, 7 chiffres pour la suite (le préfixe est choisi
+        // séparément dans le select ; préfixe + suite = 10 chiffres au total,
+        // jamais 10 chiffres après le préfixe).
         document.getElementById('destPhone').addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 10);
+            this.value = this.value.replace(/\D/g, '').slice(0, SUITE_LENGTH);
         });
 
         // NOTE: the form submits normally to the server (depot/retrait/transfert
@@ -360,4 +489,5 @@ Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au tota
         // e.preventDefault() and only ever showed a fake success state without
         // ever sending the transaction to the server.
     </script>
-</body></html>
+</body>
+</html>

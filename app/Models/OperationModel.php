@@ -8,7 +8,7 @@ class OperationModel extends Model
 {
     protected $table         = 'operation';
     protected $primaryKey    = 'id';
-    protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track'];
+    protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track', 'frais', 'id_operateur', 'commission'];
 
     public const TYPE_RETRAIT   = 'retrait';
     public const TYPE_TRANSFERT = 'transfert';
@@ -25,8 +25,7 @@ class OperationModel extends Model
         return $this->typeCache[$label];
     }
 
-    public function getSolde($idCompte)
-    {
+    public function getSolde($idCompte){
         $depots = $this->db->table('operation o')
             ->selectSum('o.montant')->join('type_operation t', 't.id = o.id_type')
             ->where('t.label', self::TYPE_DEPOT)->where('o.id_compte1', $idCompte)
@@ -38,9 +37,11 @@ class OperationModel extends Model
             ->get()->getRow()->montant ?? 0;
 
         $sorties = $this->db->table('operation o')
-            ->selectSum('o.montant')->join('type_operation t', 't.id = o.id_type')
-            ->whereIn('t.label', [self::TYPE_RETRAIT, self::TYPE_TRANSFERT])->where('o.id_compte1', $idCompte)
-            ->get()->getRow()->montant ?? 0;
+            ->select('SUM(o.montant) + SUM(COALESCE(o.frais, 0)) as total_sorties')
+            ->join('type_operation t', 't.id = o.id_type')
+            ->whereIn('t.label', [self::TYPE_RETRAIT, self::TYPE_TRANSFERT])
+            ->where('o.id_compte1', $idCompte)
+            ->get()->getRow()->total_sorties ?? 0;
 
         return (float)$depots + (float)$transfertsRecus - (float)$sorties;
     }
@@ -69,31 +70,70 @@ class OperationModel extends Model
         return (bool) $this->insert(['id_type' => $typeId, 'id_compte1' => $compte1, 'id_compte2' => $compte2, 'montant' => $montant, 'date_track' => date('Y-m-d')]);
     }
 
-    public function depot($compteId, $montant)
+    public function depot($compteId, $montant){
+        if ($compteId <= 0 || $montant <= 0) {
+            return ['success' => false, 'message' => 'Données invalides.'];
+        }
+
+        // Insertion automatique avec id_type = 3
+        $saved = $this->insert([
+            'id_type'    => 3,
+            'id_compte1' => $compteId,
+            'id_compte2' => null,
+            'montant'    => $montant,
+            'date_track' => date('Y-m-d')
+        ]);
+
+        return [
+            'success' => (bool)$saved,
+            'message' => $saved ? 'Dépôt effectué avec succès.' : 'Échec du dépôt.'
+        ];
+    }
+
+
+    public function countHistorique($idCompte)
     {
-        if ($compteId <= 0 || $montant <= 0) return ['success' => false, 'message' => 'Données invalides.'];
-        $typeId = $this->getTypeId(self::TYPE_DEPOT);
-        if (!$typeId || !$this->insOp($typeId, $compteId, $montant)) return ['success' => false, 'message' => 'Échec du dépôt.'];
-        return ['success' => true, 'message' => 'Dépôt effectué.'];
+        return (int) $this->db->table('operation o')
+            ->join('type_operation t', 't.id = o.id_type')
+            ->groupStart()->where('o.id_compte1', $idCompte)->orWhere('o.id_compte2', $idCompte)->groupEnd()
+            ->countAllResults();
     }
 
     public function retrait($compteId, $montant)
     {
-        if ($compteId <= 0 || $montant <= 0) return ['success' => false, 'message' => 'Données invalides.'];
-        $typeId = $this->getTypeId(self::TYPE_RETRAIT);
-        $frais = $this->getFrais($montant, $typeId);
-        
-        if (($montant + $frais) > $this->getSolde($compteId)) return ['success' => false, 'message' => 'Solde insuffisant.'];
-
-        $this->db->transStart();
-        $this->insOp($typeId, $compteId, $montant);
-        if ($frais > 0) {
-            $fraisTemporaires = $frais;
-            $this->db->table('operateur')->where('id', 1)->set('solde', 'solde - ' . $fraisTemporaires, false)->update();
+        if ($compteId <= 0 || $montant <= 0) {
+            return ['success' => false, 'message' => 'Données invalides.'];
         }
-        $this->db->transComplete();
 
-        return ['success' => $this->db->transStatus(), 'message' => 'Retrait effectué.'];
+        // Récupération de la tranche pour le retrait (id_type = 1)
+        $tranche = $this->db->table('tranche')
+            ->where('id_type', 1)
+            ->where('montant1 <=', $montant)
+            ->where('montant2 >=', $montant)
+            ->get()->getRowArray();
+
+        // Stockage temporaire du frais
+        $fraisTemporaires = (float)($tranche['frais'] ?? 0);
+
+        // Vérification : le solde doit être supérieur ou égal à (montant + frais)
+        if (($montant + $fraisTemporaires) > $this->getSolde($compteId)) {
+            return ['success' => false, 'message' => 'Solde insuffisant pour ce retrait.'];
+        }
+
+        // Enregistrement de l'opération
+        $saved = $this->insert([
+            'id_type'    => 1,
+            'id_compte1' => $compteId,
+            'id_compte2' => null,
+            'montant'    => $montant,
+            'frais'      => $fraisTemporaires,
+            'date_track' => date('Y-m-d')
+        ]);
+
+        return [
+            'success' => (bool)$saved,
+            'message' => $saved ? 'Retrait effectué.' : 'Échec du retrait.'
+        ];
     }
 
     public function transfert($compte1Id, $compte2Id, $montant, $inclureFrais = false)
