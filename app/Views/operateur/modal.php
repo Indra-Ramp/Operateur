@@ -197,6 +197,13 @@
                     </span>
                     <span class="font-label-md text-label-md">Statistiques</span>
                 </a>
+                <a class="<?= $baseClass ?> <?= ($activePage === 'situation') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/operateur/autres/situation') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'situation') ? '1' : '0' ?>;">
+                        bar_chart
+                    </span>
+                    <span class="font-label-md text-label-md">Situation des montants</span>
+                </a>
         </nav>
         <!-- Footer Tabs -->
         <div class="mt-auto pt-xl space-y-1">

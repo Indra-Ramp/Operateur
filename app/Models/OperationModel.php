@@ -205,4 +205,20 @@ class OperationModel extends Model
 
         return ['success' => $this->db->transStatus(), 'message' => 'Envoi multiple réussi.'];
     }
+
+    public function getFraisForMontant($montant, int $typeId)
+    {
+        if (! is_numeric($montant) || $montant <= 0) {
+            return 0;
+        }
+
+        $trancheModel = new TrancheModel();
+        $tranche = $trancheModel
+            ->where('id_type', $typeId)
+            ->where('montant1 <=', $montant)
+            ->where('montant2 >=', $montant)
+            ->first();
+
+        return $tranche['frais'] ?? 0;
+    }
 }

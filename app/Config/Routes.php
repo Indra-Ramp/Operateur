@@ -26,4 +26,8 @@ $routes->group('operateur', function($routes) {
     $routes->get('stats', 'FraisController::stats');
     $routes->post('fee/add', 'FraisController::addFee');
     $routes->post('fee/update', 'FraisController::updateFee');
+    $routes->post('commission/update', 'OperateurController::updateCommission');
+    $routes->get('autres', 'OperateurController::list');
+    $routes->get('prefix/(:num)', 'OperateurController::listPrefix/$1');
+    $routes->get('autres/situation', 'OperateurController::listBeforeSituation');
 });
