@@ -30,4 +30,5 @@ $routes->group('operateur', function($routes) {
     $routes->get('autres', 'OperateurController::list');
     $routes->get('prefix/(:num)', 'OperateurController::listPrefix/$1');
     $routes->get('autres/situation', 'OperateurController::listBeforeSituation');
+    $routes->get('situation/(:num)', 'OperateurController::getSituation/$1');
 });

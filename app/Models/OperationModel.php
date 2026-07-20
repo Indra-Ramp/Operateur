@@ -270,4 +270,53 @@ class OperationModel extends Model
 
         return $tranche['frais'] ?? 0;
     }
+
+    public function getStat($startDate, $endDate, $isGlobalMode) {
+        $db = \Config\Database::connect();
+        $builder = $db->table('operation');
+        $builder->select("
+            SUM(CASE WHEN id_type = 1 THEN frais ELSE 0 END) as withdrawalFees,
+            COUNT(CASE WHEN id_type = 1 THEN 1 END) as withdrawalCount,
+            SUM(CASE WHEN id_type = 2 AND id_operateur IS NULL THEN frais ELSE 0 END) as transferInternalFees,
+            COUNT(CASE WHEN id_type = 2 AND id_operateur IS NULL THEN 1 END) as transferInternalCount,
+            SUM(CASE WHEN id_type = 2 AND id_operateur IS NOT NULL THEN frais ELSE 0 END) as transferExternalFees,
+            COUNT(CASE WHEN id_type = 2 AND id_operateur IS NOT NULL THEN 1 END) as transferExternalCount
+        ");
+        if (!$isGlobalMode) {
+            $builder->where('date_track >=', $startDate);
+            $builder->where('date_track <=', $endDate);
+        }
+        return $builder->get()->getRowArray();
+    }
+
+    public function getGraphStat($graphStartDate, $graphEndDate) {
+        $db = \Config\Database::connect();
+        $graphBuilder = $db->table('operation');
+        $graphBuilder->select("
+            DATE(date_track) as date_jour,
+            SUM(CASE WHEN id_type = 1 OR (id_type = 2 AND id_operateur IS NULL) THEN frais ELSE 0 END) as daily_internal,
+            SUM(CASE WHEN id_type = 2 AND id_operateur IS NOT NULL THEN frais ELSE 0 END) as daily_external
+        ");
+        $graphBuilder->where('date_track >=', $graphStartDate);
+        $graphBuilder->where('date_track <=', $graphEndDate);
+        $graphBuilder->groupBy('DATE(date_track)');
+        
+        return $graphBuilder->get()->getResultArray();
+    }
+
+    public function getTotalSituation($idOperateur) {
+        $db = \Config\Database::connect();
+        $builder = $db->table('operation');
+        $builder->select("
+            COALESCE(SUM(COALESCE(montant,0) + COALESCE(commission,0)), 0) AS sum
+        ");
+        $builder->where('id_operateur', $idOperateur);
+        return $builder->get()->getRow()->sum;
+    }
+
+    public function countSituation($idOperateur)
+    {
+        return $this->where('id_operateur', $idOperateur)->countAllResults();
+    }
+
 }

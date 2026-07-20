@@ -39,7 +39,7 @@ CREATE TABLE operation(
 
 CREATE INDEX idx_tel ON compte(tel);
 INSERT INTO prefixe('label') VALUES
-('032'),
+('030'),
 ('033'),
 ('034'),
 ('035'),
