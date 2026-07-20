@@ -8,7 +8,7 @@
     class FraisController extends BaseController {
         function listOperation() {
             $typeOperationModel = new TypeOperationModel();
-            $data['operations'] = $typeOperationModel->findAll();
+            $data['operations'] = $typeOperationModel->where('label !=', 'depot')->findAll();
             return view('operateur/list_operations', $data);
         }
 
