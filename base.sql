@@ -14,7 +14,8 @@ CREATE TABLE tranche(
 
 CREATE TABLE prefixe(
     id INTEGER PRIMARY KEY ,
-    label VARCHAR(20)
+    label VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE compte(

@@ -15,6 +15,9 @@
   - Configuration prefixe :
     - Creation fonction PrefixeController::displayForm
     - Creation fonction PrefixeController::addPrefix
+  - Creation des Routes :
+    - GET:/operateur/prefix
+    - POST:/operateur/prefix/new
 ## ETU004086:
 - Creation de repository (5 minutes)
 - Creation base de donnees
