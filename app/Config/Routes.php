@@ -15,6 +15,7 @@ $routes->group('client', function($routes){
     $routes->post('depot', 'OperationController::depot');
     $routes->post('retrait', 'OperationController::retrait');
     $routes->post('transfert', 'OperationController::transfert');
+    $routes->post('transfert-multiple', 'OperationController::transfertMultiple');
 });
 $routes->get('/', 'AuthController::index');
 $routes->group('operateur', function($routes) {
