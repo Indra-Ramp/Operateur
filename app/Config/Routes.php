@@ -28,4 +28,5 @@ $routes->group('operateur', function($routes) {
     $routes->post('commission/update', 'OperateurController::updateCommission');
     $routes->get('autres', 'OperateurController::list');
     $routes->get('prefix/(:num)', 'OperateurController::listPrefix/$1');
+    $routes->get('autres/situation', 'OperateurController::listBeforeSituation');
 });

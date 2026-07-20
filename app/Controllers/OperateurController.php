@@ -2,6 +2,7 @@
 
     namespace App\Controllers;
     use App\Models\OperateurModel;
+    use App\Models\OperationModel;
     use App\Models\PrefixeModel;
     use App\Models\CommissionModel;
     class OperateurController extends BaseController {
@@ -10,6 +11,13 @@
             $data['list'] = $operateurModel->findAll();
             $data['activePage'] = 'other';
             return view('operateur/operateurs', $data);
+        }
+
+        public function listBeforeSituation() {
+            $operateurModel = new OperateurModel();
+            $data['list'] = $operateurModel->findAll();
+            $data['activePage'] = 'situation';
+            return view('operateur/list_operateurs_situation', $data);
         }
 
         public function listPrefix($idOp) {
@@ -32,6 +40,12 @@
                 return redirect()->back()->withInput()->with('errors_commission', $commissionModel->errors());
             }
             return redirect()->back();
+        }
+
+        public function getSituation($idOperateur) {
+            $operationModel = new OperationModel();
+            $operationData = $operationModel->where('id_operateur', $idOperateur)->findAll();
+            $data['operation'] = $operationData;
         }
     }
 
