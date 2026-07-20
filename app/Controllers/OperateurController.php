@@ -44,10 +44,34 @@
 
         public function getSituation($idOperateur) {
             $operationModel = new OperationModel();
-            $operationData = $operationModel->where('id_operateur', $idOperateur)->findAll();
-            $data['operation'] = $operationData;
+            $perPage = 5;
+            $currentPage = (int) ($this->request->getGet('page') ?? 1);
+            $currentPage = max(1, $currentPage);
+
+            $totalOperations = $operationModel->countSituation($idOperateur);
+            $totalPages = max(1, (int) ceil($totalOperations / $perPage));
+            $currentPage = min($currentPage, $totalPages);
+            $offset = ($currentPage - 1) * $perPage;
+
+            $operationData = $operationModel->select('operation.*, c1.tel AS tel1, c2.tel AS tel2, (operation.montant + operation.commission) AS total_operateur')
+                ->join("compte AS c1", "operation.id_compte1 = c1.id")
+                ->join("compte AS c2", "operation.id_compte2 = c2.id")
+                ->where('operation.id_operateur', $idOperateur)
+                ->orderBy('operation.date_track', 'DESC')
+                ->limit($perPage, $offset)
+                ->get()
+                ->getResultArray();
+
+            $data['operations'] = $operationData;
             $data['sum'] = $operationModel->getTotalSituation($idOperateur);
-            
+            $data['currentPage'] = $currentPage;
+            $data['totalPages'] = $totalPages;
+            $data['perPage'] = $perPage;
+            $data['totalOperations'] = $totalOperations;
+            $data['idOperateur'] = $idOperateur;
+            $data['activePage'] = 'situation';
+
+            return view('operateur/situations', $data);
         }
     }
 

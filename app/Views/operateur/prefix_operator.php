@@ -6,6 +6,7 @@
         $opLabel = $operator['label'] ?? 'Opérateur';
         $opLogo = $operator['logo'] ?? '';
         $opCommission = $operator['commission'] ?? 0; // Récupération de la commission (ex: 2.5)
+        $opCommissionValue = $opCommission;
         $opCommission *= 100;
     ?>
 
@@ -202,8 +203,8 @@
                             <input
                                 name="perc"
                                 class="w-full border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none rounded-lg text-body-md h-11 pl-4 pr-10 transition-all <?= session('errors.commission') ? 'border-red-600 focus:ring-red-200' : '' ?>"
-                                placeholder="0.00" type="number" step="0.01"
-                                value="<?= old('perc') ?? esc($opCommission) ?>" required />
+                                placeholder="0.00" type="number" step="0.001"
+                                value="<?= old('perc') ?? esc($opCommissionValue) ?>" required />
                             <span class="absolute right-4 text-on-surface-variant font-semibold">%</span>
                         </div>
                         <?php if (session('errors_commission')): ?>

@@ -34,36 +34,49 @@
                        class="px-4 py-1.5 text-xs font-medium rounded-md transition-colors <?= $isGlobalMode ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100' ?>">
                         Bilan Global
                     </a>
-                    <a href="<?= base_url('operateur/stats?week_offset=0') ?>" 
-                       class="px-4 py-1.5 text-xs font-medium rounded-md transition-colors <?= (!$isGlobalMode && $weekOffset === 0) ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100' ?>">
-                        Cette semaine
-                    </a>
                 </div>
             </div>
         </header>
 
         <!-- Navigation Temporelle Contextuelle -->
         <!-- Navigation Temporelle Contextuelle (Toujours active pour le changement de semaine) -->
-        <div class="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
-            <a href="<?= base_url('operateur/stats?week_offset=' . ((int)($weekOffset ?? 0) - 1)) ?>" 
-               class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
-                <span class="material-symbols-outlined text-[18px]">arrow_back</span> Semaine précédente
-            </a>
-            <div class="text-center">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Période d'analyse</span>
-                <span class="text-sm font-bold text-gray-800">
-                    <?php if ($isGlobalMode): ?>
-                        Graphique : 7 derniers jours (Vue Globale)
-                    <?php else: ?>
-                        <?= date('d M Y', strtotime($startDate)) ?> — <?= date('d M Y', strtotime($endDate)) ?>
-                    <?php endif; ?>
-                </span>
-            </div>
-            <a href="<?= base_url('operateur/stats?week_offset=' . ((int)($weekOffset ?? 0) + 1)) ?>" 
-               class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
-                Semaine suivante <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </a>
-        </div>
+        <!-- Sélecteur de Type de Vue -->
+<div class="flex justify-end gap-2 mb-4">
+    <a href="<?= base_url('operateur/stats?view_type=week&week_offset=0') ?>" 
+       class="px-3 py-1.5 text-xs font-semibold rounded-lg border <?= $viewType === 'week' ? 'bg-gray-950 text-white border-gray-950' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' ?>">
+        Vue Hebdomadaire
+    </a>
+    <a href="<?= base_url('operateur/stats?view_type=month&month_offset=0') ?>" 
+       class="px-3 py-1.5 text-xs font-semibold rounded-lg border <?= $viewType === 'month' ? 'bg-gray-950 text-white border-gray-950' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' ?>">
+        Vue Mensuelle
+    </a>
+</div>
+
+<!-- Navigation Temporelle Dynamique -->
+<div class="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+    <?php 
+        // Génération dynamique des liens selon le mode choisi
+        if ($viewType === 'month') {
+            $prevUrl = base_url('operateur/stats?view_type=month&month_offset=' . ((int)($monthOffset ?? 0) - 1));
+            $nextUrl = base_url('operateur/stats?view_type=month&month_offset=' . ((int)($monthOffset ?? 0) + 1));
+            $periodLabel = $isGlobalMode ? "Mois en cours (Vue Globale)" : date('F Y', strtotime($startDate));
+        } else {
+            $prevUrl = base_url('operateur/stats?view_type=week&week_offset=' . ((int)($weekOffset ?? 0) - 1));
+            $nextUrl = base_url('operateur/stats?view_type=week&week_offset=' . ((int)($weekOffset ?? 0) + 1));
+            $periodLabel = $isGlobalMode ? "7 derniers jours (Vue Globale)" : date('d M Y', strtotime($startDate)) . ' — ' . date('d M Y', strtotime($endDate));
+        }
+    ?>
+    <a href="<?= $prevUrl ?>" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span> <?= $viewType === 'month' ? 'Mois précédent' : 'Semaine précédente' ?>
+    </a>
+    <div class="text-center">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Période d'analyse</span>
+        <span class="text-sm font-bold text-gray-800"><?= $periodLabel ?></span>
+    </div>
+    <a href="<?= $nextUrl ?>" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+        <?= $viewType === 'month' ? 'Mois suivant' : 'Semaine suivante' ?> <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+    </a>
+</div>
 
         <!-- Graphique Évolutif Multi-Passerelles -->
         <div class="glass-card rounded-xl p-6 mb-8">
@@ -98,7 +111,6 @@
                             <th class="px-6 py-3.5">Segment de Flux</th>
                             <th class="px-6 py-3.5 text-right">Volume Transactions</th>
                             <th class="px-6 py-3.5 text-right">Total Frais Générés</th>
-                            <th class="px-6 py-3.5 text-right">Marge Estimée</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
@@ -110,9 +122,6 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right"><?= number_format($row['transactions'], 0, ',', ' ') ?></td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium <?= !$isRowTotal && strpos($row['title'], 'Retrait') === false ? 'text-gray-900' : '' ?> <?= $isRowTotal ? '' : 'text-emerald-600' ?>">
                                     <?= number_format($row['amount'], 0, ',', ' ') ?> Ar
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500 <?= $isRowTotal ? 'text-gray-950 font-bold' : '' ?>">
-                                    <?= $row['margin'] ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

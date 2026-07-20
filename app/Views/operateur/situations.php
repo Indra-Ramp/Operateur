@@ -1,4 +1,5 @@
 <?= $this->extend("operateur/modal") ?>
+<?= $this->section('custom_style') ?>
     <style>
         body {
             background-color: #f8f9fa;
@@ -22,8 +23,9 @@
             transition: all 0.2s ease;
         }
     </style>
+<?= $this->endSection() ?>
 
-
+<?= $this->section('main') ?>
     <!-- Main Content Canvas -->
     <main class="ml-[280px] p-xl min-h-screen flex flex-col">
         <!-- Header Section -->
@@ -66,19 +68,21 @@
                 <!-- List Items -->
                 <div class="divide-y divide-outline-variant">
                     <!-- Row 1 -->
-                    <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
-                        <div class="col-span-5">
-                            <p class="font-medium text-on-surface">Transfert d'argent de 0323203232 vers 0383803838</p>
-                            <p class="text-xs text-on-surface-variant font-label-md">ID: TRX-98234-MAD • 14 Oct 2023,
-                                09:41</p>
+                    <?php foreach($operations as $op): ?>
+                        <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
+                            <div class="col-span-5">
+                                <p class="font-medium text-on-surface">Transfert d'argent de <?= $op['tel1'] ?> vers <?= $op['tel2'] ?></p>
+                                <p class="text-xs text-on-surface-variant font-label-md"><?= $op['date_track'] ?>,
+                                    09:41</p>
+                            </div>
+                            <div class="col-span-2 text-right font-label-md text-on-surface"><?= $op['montant'] ?> Ar</div>
+                            <div class="col-span-2 text-right font-label-md text-primary"><?= $op['commission'] ?> Ar</div>
+                            <div class="col-span-3 text-right font-label-md font-bold text-on-tertiary-container"><?= $op['total_operateur'] ?> Ar
+                            </div>
                         </div>
-                        <div class="col-span-2 text-right font-label-md text-on-surface">500 000 Ar</div>
-                        <div class="col-span-2 text-right font-label-md text-primary">5 000 Ar</div>
-                        <div class="col-span-3 text-right font-label-md font-bold text-on-tertiary-container">505 000 Ar
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                     <!-- Row 2 -->
-                    <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
+                    <!-- <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
                         <div class="col-span-5">
                             <p class="font-medium text-on-surface">Transfert d'argent de 0383803838 vers 0323203232</p>
                             <p class="text-xs text-on-surface-variant font-label-md">ID: TRX-98235-MAD • 14 Oct 2023,
@@ -89,7 +93,6 @@
                         <div class="col-span-3 text-right font-label-md font-bold text-on-tertiary-container">1 212 000
                             Ar</div>
                     </div>
-                    <!-- Row 3 -->
                     <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
                         <div class="col-span-5">
                             <p class="font-medium text-on-surface">Transfert d'argent de 0323203232 vers 0341234567</p>
@@ -101,7 +104,6 @@
                         <div class="col-span-3 text-right font-label-md font-bold text-on-tertiary-container">75 750 Ar
                         </div>
                     </div>
-                    <!-- Row 4 -->
                     <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
                         <div class="col-span-5">
                             <p class="font-medium text-on-surface">Transfert d'argent de 0345678901 vers 0383803838</p>
@@ -113,7 +115,6 @@
                         <div class="col-span-3 text-right font-label-md font-bold text-on-tertiary-container">252 500 Ar
                         </div>
                     </div>
-                    <!-- Row 5 -->
                     <div class="transaction-row grid grid-cols-12 gap-gutter px-lg py-md items-center">
                         <div class="col-span-5">
                             <p class="font-medium text-on-surface">Transfert d'argent de 0323203232 vers 0329988776</p>
@@ -124,30 +125,66 @@
                         <div class="col-span-2 text-right font-label-md text-primary">9 000 Ar</div>
                         <div class="col-span-3 text-right font-label-md font-bold text-on-tertiary-container">909 000 Ar
                         </div>
-                    </div>
+                    </div> -->
                 </div>
                 <!-- Pagination -->
                 <div
-                    class="px-lg py-md border-t border-outline-variant flex justify-between items-center bg-surface-container-lowest">
-                    <p class="text-sm text-on-surface-variant">Affichage de 5 sur 124 transactions</p>
-                    <div class="flex items-center gap-xs">
-                        <button
-                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
-                            <span class="material-symbols-outlined text-sm">chevron_left</span>
-                        </button>
-                        <button
-                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-medium">1</button>
-                        <button
-                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">2</button>
-                        <button
-                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">3</button>
-                        <span class="mx-xs text-on-surface-variant">...</span>
-                        <button
-                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">25</button>
-                        <button
-                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
-                            <span class="material-symbols-outlined text-sm">chevron_right</span>
-                        </button>
+                    class="px-lg py-md border-t border-outline-variant flex flex-col gap-sm md:flex-row md:justify-between md:items-center bg-surface-container-lowest">
+                    <?php
+                        $firstItem = $totalOperations === 0 ? 0 : ($currentPage - 1) * $perPage + 1;
+                        $lastItem = $totalOperations === 0 ? 0 : min($totalOperations, $currentPage * $perPage);
+                        $baseUrl = "/operateur/situation/{$idOperateur}";
+                    ?>
+                    <p class="text-sm text-on-surface-variant">Affichage de <?= $firstItem ?> à <?= $lastItem ?> sur <?= number_format($totalOperations, 0, ',', ' ') ?> transactions</p>
+                    <div class="flex flex-wrap items-center gap-xs">
+                        <?php if ($currentPage > 1): ?>
+                            <a href="<?= $baseUrl ?>?page=<?= $currentPage - 1 ?>"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
+                                <span class="material-symbols-outlined text-sm">chevron_left</span>
+                            </a>
+                        <?php else: ?>
+                            <button disabled
+                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant bg-surface-container-low transition-colors">
+                                <span class="material-symbols-outlined text-sm">chevron_left</span>
+                            </button>
+                        <?php endif; ?>
+
+                        <?php
+                            $pagesToShow = [];
+                            for ($p = 1; $p <= $totalPages; $p++) {
+                                if ($p === 1 || $p === $totalPages || abs($p - $currentPage) <= 1) {
+                                    $pagesToShow[] = $p;
+                                }
+                            }
+                            $previousPage = 0;
+                        ?>
+
+                        <?php foreach ($pagesToShow as $p): ?>
+                            <?php if ($p - $previousPage > 1): ?>
+                                <span class="mx-xs text-on-surface-variant">...</span>
+                            <?php endif; ?>
+
+                            <?php if ($p === $currentPage): ?>
+                                <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-medium"><?= $p ?></span>
+                            <?php else: ?>
+                                <a href="<?= $baseUrl ?>?page=<?= $p ?>"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors"><?= $p ?></a>
+                            <?php endif; ?>
+
+                            <?php $previousPage = $p; ?>
+                        <?php endforeach; ?>
+
+                        <?php if ($currentPage < $totalPages): ?>
+                            <a href="<?= $baseUrl ?>?page=<?= $currentPage + 1 ?>"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </a>
+                        <?php else: ?>
+                            <button disabled
+                                class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant bg-surface-container-low transition-colors">
+                                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -161,13 +198,11 @@
                 <div class="absolute right-10 top-0 w-32 h-full bg-secondary opacity-5 skew-x-12 translate-x-10"></div>
                 <div class="relative z-10">
                     <h3 class="font-headline-md text-headline-md font-bold">Total de toutes les situations</h3>
-                    <p class="text-secondary-container opacity-90">Calculé sur la base des transactions filtrées du jour
-                    </p>
                 </div>
                 <div class="text-right relative z-10">
                     <div class="font-label-md text-label-md text-secondary-container uppercase mb-xs">Montant total net
                     </div>
-                    <div class="text-[32px] leading-tight font-display font-bold tracking-tight">2 964 250 Ar</div>
+                    <div class="text-[32px] leading-tight font-display font-bold tracking-tight"><?= $sum ?> Ar</div>
                 </div>
             </div>
         </footer>
@@ -187,3 +222,4 @@
             });
         });
     </script>
+<?= $this->endSection() ?>

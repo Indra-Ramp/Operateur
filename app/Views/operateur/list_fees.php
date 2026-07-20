@@ -58,7 +58,7 @@
                   <th class="px-lg py-md font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
                     Montant Max</th>
                   <th class="px-lg py-md font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
-                    Frais (FCFA)</th>
+                    Frais (Ar)</th>
                   <th
                     class="px-lg py-md font-label-md text-label-md uppercase tracking-wider text-on-surface-variant text-right">
                     Actions</th>
@@ -135,11 +135,11 @@
                   <?php endif; ?>
                 <!-- <tr class="hover:bg-primary-container/5 transition-colors">
                   <td class="px-lg py-md">
-                    <input type="text" value="5 001 FCFA"
+                    <input type="text" value="5 001 Ar"
                       class="w-full bg-surface-container-low border border-outline-variant rounded px-sm py-xs font-label-md text-label-md focus:ring-1 focus:ring-primary outline-none">
                   </td>
                   <td class="px-lg py-md">
-                    <input type="text" value="10 000 FCFA"
+                    <input type="text" value="10 000 Ar"
                       class="w-full bg-surface-container-low border border-outline-variant rounded px-sm py-xs font-label-md text-label-md focus:ring-1 focus:ring-primary outline-none">
                   </td>
                   <td class="px-lg py-md">
@@ -163,11 +163,11 @@
                 </tr>
                 <tr class="hover:bg-primary-container/5 transition-colors">
                   <td class="px-lg py-md">
-                    <input type="text" value="10 001 FCFA"
+                    <input type="text" value="10 001 Ar"
                       class="w-full bg-surface-container-low border border-outline-variant rounded px-sm py-xs font-label-md text-label-md focus:ring-1 focus:ring-primary outline-none">
                   </td>
                   <td class="px-lg py-md">
-                    <input type="text" value="25 000 FCFA"
+                    <input type="text" value="25 000 Ar"
                       class="w-full bg-surface-container-low border border-outline-variant rounded px-sm py-xs font-label-md text-label-md focus:ring-1 focus:ring-primary outline-none">
                   </td>
                   <td class="px-lg py-md">
@@ -257,7 +257,7 @@
         </div>
 
         <div>
-          <label class="mb-xs block font-label-md text-label-md text-on-surface-variant">Frais (FCFA)</label>
+          <label class="mb-xs block font-label-md text-label-md text-on-surface-variant">Frais (Ar)</label>
           <input type="number" step="1" placeholder="50" name="frais" value="<?= old('frais') ?? '' ?>"
             class="w-full rounded-lg border border-outline-variant bg-surface-container-low px-sm py-xs text-body-md outline-none focus:ring-1 focus:ring-primary">
           <p class="text-sm font-medium text-red-600"><?= $errors['frais'] ?? '' ?></p>
