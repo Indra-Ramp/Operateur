@@ -12,6 +12,9 @@
   - Creation des controllers :
     - PrefixeController.php
     - FraisController.php
+  - Configuration prefixe :
+    - Creation fonction PrefixeController::displayForm
+    - Creation fonction PrefixeController::addPrefix
 ## ETU004086:
 - Creation de repository (5 minutes)
 - Creation base de donnees
