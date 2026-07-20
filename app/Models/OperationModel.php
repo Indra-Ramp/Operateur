@@ -35,7 +35,7 @@ class OperationModel extends Model
         return $entrees - $sorties;
     }
 
-    protected function getFraisForMontant($montant, int $typeId)
+    public function getFraisForMontant($montant, int $typeId)
     {
         if (! is_numeric($montant) || $montant <= 0) {
             return 0;

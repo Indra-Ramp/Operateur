@@ -182,6 +182,14 @@
                     </span>
                     <span class="font-label-md text-label-md">Prefixes</span>
                 </a>
+                <!-- Lien Statistiques -->
+                <a class="<?= $baseClass ?> <?= ($activePage === 'stats') ? $activeClass : $inactiveClass ?>"
+                href="<?= base_url('/operateur/stats') ?>">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'stats') ? '1' : '0' ?>;">
+                        bar_chart
+                    </span>
+                    <span class="font-label-md text-label-md">Statistiques</span>
+                </a>
         </nav>
         <!-- Footer Tabs -->
         <div class="mt-auto pt-xl space-y-1">
