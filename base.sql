@@ -8,6 +8,7 @@ CREATE TABLE tranche(
     id_type INTEGER,
     montant1 NUMBER,
     montant2 NUMBER,
+    frais NUMBER,
     FOREIGN KEY (id_type) REFERENCES type_operation(id)
 );
 
