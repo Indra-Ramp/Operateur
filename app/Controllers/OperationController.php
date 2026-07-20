@@ -2,131 +2,135 @@
 
 namespace App\Controllers;
 
+use App\Libraries\PhoneHelper;
 use App\Models\CompteModel;
 use App\Models\OperationModel;
 use App\Models\PrefixeModel;
 
 class OperationController extends BaseController
 {
-    protected $operationModel;
 
-    public function transactions(){
-        $prefixeModel = new PrefixeModel();
-        $data['prefixes'] = $prefixeModel->findAll();
+    public function transactions()
+    {
+        $compteId = $this->getCompteConnecteId();
 
-        return view('client/transaction', $data);
+        if (! $compteId) {
+            return redirect()->to('/client/login');
+        }
+
+        $operationModel = new OperationModel();
+        $prefixeModel   = new PrefixeModel();
+
+        return view('client/transaction', [
+            'prefixes'    => $prefixeModel->findAll(),
+            'soldeCompte' => $operationModel->getSolde($compteId),
+            'recentes'    => $operationModel->getHistorique($compteId, 3),
+            'compte'      => session()->get('compte'),
+        ]);
     }
 
-    protected function getCompteConnecteId(): ?int
+    public function depot()
     {
-        $session = session();
-        $compte = $session->get('compte');
+        return $this->handleOperation(
+            fn (OperationModel $model, int $compteId, float $montant) => $model->depot($compteId, $montant)
+        );
+    }
+
+    public function retrait()
+    {
+        return $this->handleOperation(
+            fn (OperationModel $model, int $compteId, float $montant) => $model->retrait($compteId, $montant)
+        );
+    }
+
+    public function transfert()
+    {
+        $compteId = $this->getCompteConnecteId();
+
+        if (! $compteId) {
+            return redirect()->to('/client/login');
+        }
+
+        $montant = $this->parseMontant($this->request->getPost('montant'));
+
+        if ($montant === null) {
+            return redirect()->back()->withInput()->with('error', 'Veuillez saisir un montant valide.');
+        }
+
+        $destinataire = $this->resolveDestinataireId(
+            $this->request->getPost('prefixe'),
+            $this->request->getPost('phone')
+        );
+
+        if (is_string($destinataire)) {
+            return redirect()->back()->withInput()->with('error', $destinataire);
+        }
+
+        $result = (new OperationModel())->transfert($compteId, $destinataire, $montant);
+
+        return redirect()->to('/client/dashboard')
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    private function handleOperation(callable $operation)
+    {
+        $compteId = $this->getCompteConnecteId();
+
+        if (! $compteId) {
+            return redirect()->to('/client/login');
+        }
+
+        $montant = $this->parseMontant($this->request->getPost('montant'));
+
+        if ($montant === null) {
+            return redirect()->back()->withInput()->with('error', 'Veuillez saisir un montant valide.');
+        }
+
+        $result = $operation(new OperationModel(), $compteId, $montant);
+
+        return redirect()->to('/client/dashboard')
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    private function parseMontant($raw): ?float
+    {
+        if ($raw === null || $raw === '' || ! is_numeric($raw)) {
+            return null;
+        }
+
+        $montant = (float) $raw;
+
+        return $montant > 0 ? $montant : null;
+    }
+
+    private function getCompteConnecteId(): ?int
+    {
+        $compte = session()->get('compte');
 
         return isset($compte['id']) ? (int) $compte['id'] : null;
     }
 
-    protected function normalizePrefix(?string $prefix): string
+    private function resolveDestinataireId(?string $prefix, ?string $phone)
     {
-        return preg_replace('/[^0-9]/', '', trim((string) $prefix));
-    }
+        $check = PhoneHelper::validate($prefix, $phone);
 
-    protected function resolveDestinataireId(?int $compte2Id, ?string $prefix, ?string $phone)
-    {
-        if ($compte2Id !== null && $compte2Id > 0) {
-            return $compte2Id;
-        }
-
-        $prefix = $this->normalizePrefix($prefix);
-        $phone = preg_replace('/\D/', '', (string) $phone);
-
-        if (empty($prefix) || empty($phone)) {
-            return 'Le préfixe et le numéro destinataire sont requis.';
-        }
-
-        if (strlen($phone) !== 10) {
-            return 'Le numéro destinataire doit contenir exactement 10 chiffres.';
-        }
-
-        $prefixeModel = new PrefixeModel();
-        $prefixe = $prefixeModel->where('label', $prefix)->first();
-
-        if (! $prefixe) {
-            $prefixeId = $prefixeModel->insert(['label' => $prefix]);
-            if (! $prefixeId) {
-                return 'Impossible d\'enregistrer le préfixe destinataire.';
-            }
+        if (! $check['valid']) {
+            return implode(' ', $check['errors']);
         }
 
         $compteModel = new CompteModel();
-        $destinataire = $compteModel->where('tel', $phone)->first();
+        $destinataire = $compteModel->where('tel', $check['phone'])->first();
 
         if ($destinataire) {
             return (int) $destinataire['id'];
         }
 
-        $newId = $compteModel->insert(['tel' => $phone]);
+        $newId = $compteModel->insert(['tel' => $check['phone']]);
 
         if (! $newId) {
-            return 'Impossible de créer le compte destinataire.';
+            return "Impossible de créer le compte destinataire.";
         }
 
         return (int) $newId;
-    }
-
-    public function depot($montant = null, $compteId = null){
-        $operationModel = new OperationModel();
-        if ($montant === null) {
-            $montant = $this->request->getPost('montant') ?? $this->request->getPost('amount');
-        }
-
-        $compteId = $compteId ?: $this->getCompteConnecteId();
-
-        return $operationModel->depot((int) $compteId, (float) $montant);
-    }
-
-    public function retrait($montant = null, $compteId = null)
-    {
-        $operationModel = new OperationModel();
-        if ($montant === null) {
-            $montant = $this->request->getPost('montant') ?? $this->request->getPost('amount');
-        }
-
-        $compteId = $compteId ?: $this->getCompteConnecteId();
-
-        return $operationModel->retrait((int) $compteId, (float) $montant);
-    }
-
-    public function transfert($compte2Id = null, $montant = null, $compte1Id = null)
-    {
-        $operationModel = new OperationModel();
-
-        if ($compte2Id == null) {
-            $compte2Id = $this->request->getPost('compte2') ?? $this->request->getPost('id_compte2');
-        }
-
-        $prefix = $this->request->getPost('prefixe') ?? $this->request->getPost('prefix');
-        $phone = $this->request->getPost('phone') ?? $this->request->getPost('numero');
-
-        if ($montant == null) {
-            $montant = $this->request->getPost('montant') ?? $this->request->getPost('amount');
-        }
-
-        $compte1Id = $compte1Id ?: $this->getCompteConnecteId();
-
-        $resolved = $this->resolveDestinataireId($compte2Id ? (int) $compte2Id : null, $prefix, $phone);
-
-        if (is_string($resolved)) {
-            return redirect()->back()->withInput()->with('error', $resolved);
-        }
-
-        $compte2Id = $resolved;
-
-        $result = $operationModel->transfert((int) $compte1Id, (int) $compte2Id, (float) $montant);
-
-        if ($result === false) {
-            return redirect()->back()->withInput()->with('error', 'La transaction de transfert a échoué.');
-        }
-
-        return redirect()->to('/client/dashboard')->with('success', 'Transfert effectué avec succès.');
     }
 }

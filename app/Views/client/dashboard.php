@@ -127,7 +127,7 @@
 <span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">MobileMoney</span>
 </div>
 <nav class="hidden md:flex gap-xl h-full">
-<a class="flex items-center h-full text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary transition-colors" href="#">Dashboard</a>
+<a class="flex items-center h-full text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary transition-colors" href="/client/dashboard">Dashboard</a>
 <a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="/client/transactions">Transactions</a>
 <a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="#">Cards</a>
 <a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="#">Settings</a>
@@ -140,16 +140,21 @@
 <span class="material-symbols-outlined text-on-surface-variant" data-icon="help">help</span>
 </button>
 <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white font-bold text-xs">
-                JD
+                <?= esc(strtoupper(substr($compte['tel'], -2))) ?>
             </div>
-<button class="text-on-surface-variant font-medium text-body-md hover:text-primary transition-colors">Logout</button>
+<a class="text-on-surface-variant font-medium text-body-md hover:text-primary transition-colors" href="/client/logout">Logout</a>
 </div>
 </header>
 <main class="pt-24 pb-12 px-container-padding max-w-7xl mx-auto">
+<?php if (session()->getFlashdata('success')): ?>
+<div class="mb-lg rounded-lg border border-primary text-primary bg-primary/10 px-md py-sm font-medium"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php elseif (session()->getFlashdata('error')): ?>
+<div class="mb-lg rounded-lg border border-error text-error bg-error/10 px-md py-sm font-medium"><?= esc(session()->getFlashdata('error')) ?></div>
+<?php endif ?>
 <!-- Welcome Header -->
 <div class="mb-lg">
-<h1 class="font-display text-display text-on-surface">Good Morning, Jean Dupont</h1>
-<p class="text-on-surface-variant font-body-lg">Here's what's happening with your account today.</p>
+<h1 class="font-display text-display text-on-surface">Bienvenue, <?= esc($compte['tel']) ?></h1>
+<p class="text-on-surface-variant font-body-lg">Voici un aperçu de votre compte aujourd'hui.</p>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
 <!-- Account Summary Card (Bento Row 1) -->
@@ -165,35 +170,35 @@
 </div>
 <div class="flex justify-between items-end border-t border-white/20 pt-md">
 <div>
-<p class="text-xs opacity-70">Account Holder</p>
-<p class="font-bold text-body-lg">Jean Dupont</p>
+<p class="text-xs opacity-70">Numéro de compte</p>
+<p class="font-bold text-body-lg">#<?= esc($compte['id']) ?></p>
 </div>
 <div class="text-right">
 <p class="text-xs opacity-70">Phone Number</p>
-<p class="font-bold text-body-lg"><?= $compte['tel'] ?></p>
+<p class="font-bold text-body-lg"><?= esc($compte['tel']) ?></p>
 </div>
 </div>
 </div>
 <!-- Action Cards -->
 <div class="grid grid-cols-2 gap-md">
-<button class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+<a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
 <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-on-secondary-container" data-icon="send">send</span>
 </div>
 <span class="font-bold text-on-surface">Transfer</span>
-</button>
-<button class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+</a>
+<a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
 <div class="w-12 h-12 rounded-full bg-tertiary-container/30 flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-tertiary" data-icon="add_card">add_card</span>
 </div>
 <span class="font-bold text-on-surface">Deposit</span>
-</button>
-<button class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+</a>
+<a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
 <div class="w-12 h-12 rounded-full bg-error-container/30 flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-error" data-icon="outbox">outbox</span>
 </div>
 <span class="font-bold text-on-surface">Withdraw</span>
-</button>
+</a>
 <!-- <button class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
 <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-on-surface-variant" data-icon="receipt_long">receipt_long</span>
@@ -267,26 +272,51 @@
 </thead>
 <tbody class="divide-y divide-outline-variant/30">
 <?php if (! empty($operations)): ?>
+    <?php $idCompte = (int) $compte['id']; ?>
     <?php foreach ($operations as $operation): ?>
         <?php
+            $type = $operation['type_label'] ?? '';
+            $isOutgoing = ((int) $operation['id_compte1'] === $idCompte);
             $amount = number_format($operation['montant'], 0, ',', ' ');
-            $typeLabel = esc($operation['type_label'] ?? $operation['id_type']);
-            $participant = esc($operation['id_compte2'] ?? $operation['id_cpmpte2'] ?? '');
-            // $isOutgoing = ($operation['id_compte1'] === $compte['id']);
-            // $amountLabel = $isOutgoing ? '- ' . $amount . ' Ar' : '+ ' . $amount . ' Ar';
-            // $statusClass = $isOutgoing ? 'bg-error-container text-error' : 'bg-primary/10 text-primary';
-            // $statusText = $isOutgoing ? 'Sent' : 'Received';
+
+            switch ($type) {
+                case 'depot':
+                    $icon = 'add_card';
+                    $participant = 'Dépôt sur votre compte';
+                    $credit = true;
+                    break;
+                case 'retrait':
+                    $icon = 'outbox';
+                    $participant = 'Retrait (agent)';
+                    $credit = false;
+                    break;
+                case 'transfert':
+                    $icon = $isOutgoing ? 'arrow_outward' : 'arrow_downward';
+                    $participant = $isOutgoing
+                        ? 'Vers ' . esc($operation['tel_compte2'] ?? 'N/A')
+                        : 'De ' . esc($operation['tel_compte1'] ?? 'N/A');
+                    $credit = ! $isOutgoing;
+                    break;
+                default:
+                    $icon = 'swap_horiz';
+                    $participant = 'N/A';
+                    $credit = ! $isOutgoing;
+            }
+
+            $amountLabel = ($credit ? '+ ' : '- ') . $amount . ' Ar';
+            $statusClass = $credit ? 'bg-primary/10 text-primary' : 'bg-error-container text-error';
+            $statusText  = $credit ? 'Crédit' : 'Débit';
         ?>
         <tr class="hover:bg-surface-container-low transition-colors">
             <td class="px-md py-md text-body-md whitespace-nowrap"><?= esc($operation['date_track']); ?></td>
             <td class="px-md py-md text-body-md">
                 <span class="flex items-center gap-sm">
-                    <span class="material-symbols-outlined text-primary" data-icon="swap_horiz">swap_horiz</span>
-                    <?= $typeLabel ?>
+                    <span class="material-symbols-outlined text-primary" data-icon="<?= $icon ?>"><?= $icon ?></span>
+                    <?= esc(ucfirst($type)) ?>
                 </span>
             </td>
-            <td class="px-md py-md text-body-md"><?= $participant ?: 'N/A' ?></td>
-            <td class="px-md py-md font-bold <?= $isOutgoing ? 'text-on-surface' : 'text-primary' ?>"><?= $amountLabel ?></td>
+            <td class="px-md py-md text-body-md"><?= $participant ?></td>
+            <td class="px-md py-md font-bold <?= $credit ? 'text-primary' : 'text-on-surface' ?>"><?= $amountLabel ?></td>
             <td class="px-md py-md">
                 <span class="<?= $statusClass ?> px-sm py-1 rounded-full text-xs font-bold uppercase"><?= $statusText ?></span>
             </td>
@@ -304,31 +334,66 @@
 </table>
 </div>
 <!-- Pagination -->
+<?php if ($totalOperations > 0): ?>
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-md mt-lg pt-md border-t border-outline-variant">
-<p class="text-sm text-on-surface-variant">Showing <span class="font-bold">1-4</span> of <span class="font-bold">24</span> transactions</p>
+<?php
+    $firstItem = ($currentPage - 1) * $perPage + 1;
+    $lastItem  = min($totalOperations, $currentPage * $perPage);
+?>
+<p class="text-sm text-on-surface-variant">Affichage de <span class="font-bold"><?= $firstItem ?>-<?= $lastItem ?></span> sur <span class="font-bold"><?= $totalOperations ?></span> transactions</p>
 <div class="flex items-center gap-sm">
-<button class="p-sm rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors disabled:opacity-50" disabled="">
+<?php if ($currentPage > 1): ?>
+<a href="?page=<?= $currentPage - 1 ?>" class="p-sm rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
 <span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
-</button>
-<div class="flex items-center">
-<button class="w-10 h-10 rounded-full bg-primary text-white font-bold text-sm shadow-md">1</button>
-<button class="w-10 h-10 rounded-full hover:bg-surface-container-high font-bold text-sm transition-colors">2</button>
-<button class="w-10 h-10 rounded-full hover:bg-surface-container-high font-bold text-sm transition-colors">3</button>
-<span class="px-sm text-on-surface-variant">...</span>
-<button class="w-10 h-10 rounded-full hover:bg-surface-container-high font-bold text-sm transition-colors">6</button>
+</a>
+<?php else: ?>
+<span class="p-sm rounded-lg border border-outline-variant opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</span>
+<?php endif; ?>
+<div class="flex items-center gap-1">
+<?php
+    // Build a compact page list: always show first, last, current and its
+    // neighbours, and collapse the rest behind an ellipsis.
+    $pagesToShow = [];
+    for ($p = 1; $p <= $totalPages; $p++) {
+        if ($p === 1 || $p === $totalPages || abs($p - $currentPage) <= 1) {
+            $pagesToShow[] = $p;
+        }
+    }
+?>
+<?php $previousPage = 0; ?>
+<?php foreach ($pagesToShow as $p): ?>
+    <?php if ($p - $previousPage > 1): ?>
+        <span class="px-sm text-on-surface-variant">...</span>
+    <?php endif; ?>
+    <?php if ($p === $currentPage): ?>
+        <span class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold text-sm shadow-md"><?= $p ?></span>
+    <?php else: ?>
+        <a href="?page=<?= $p ?>" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high font-bold text-sm transition-colors"><?= $p ?></a>
+    <?php endif; ?>
+    <?php $previousPage = $p; ?>
+<?php endforeach; ?>
 </div>
-<button class="p-sm rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
+<?php if ($currentPage < $totalPages): ?>
+<a href="?page=<?= $currentPage + 1 ?>" class="p-sm rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
 <span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
-</button>
+</a>
+<?php else: ?>
+<span class="p-sm rounded-lg border border-outline-variant opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</span>
+<?php endif; ?>
 </div>
 </div>
+<?php endif; ?>
 </div>
 </div>
 </main>
 <!-- Floating Action Button (Only on Mobile-ish context) -->
-<button class="fixed bottom-lg right-lg bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all lg:hidden">
+<a href="/client/transactions" class="fixed bottom-lg right-lg bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all lg:hidden">
 <span class="material-symbols-outlined" data-icon="add">add</span>
-</button>
+</a>
 <script>
         // Simple micro-interactions for the filter dropdowns and interactive elements
         document.querySelectorAll('select, input[type="date"]').forEach(el => {

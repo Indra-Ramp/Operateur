@@ -2,63 +2,107 @@
 
 namespace App\Controllers;
 
+use App\Libraries\PhoneHelper;
 use App\Models\CompteModel;
-use App\Models\PrefixeModel;
 use App\Models\OperationModel;
+use App\Models\PrefixeModel;
 
 class AuthController extends BaseController
 {
+
     public function index()
     {
-        $prefixeModel = new PrefixeModel();
-        $data['prefixes'] = $prefixeModel->findAll();
+        if (session()->get('compte')) {
+            return redirect()->to('/client/dashboard');
+        }
 
-        return view('client/login', $data);
+        $prefixeModel = new PrefixeModel();
+
+        return view('client/login', [
+            'prefixes' => $prefixeModel->findAll(),
+        ]);
     }
 
     public function dashboard()
     {
-        $session = session();
-        $compteModel = new CompteModel();
-        $operationModel = new OperationModel();
+        if ($this->request->getMethod() === 'post') {
+            $loginResult = $this->attemptLogin();
 
-        $phone = $this->request->getPost('phone');
-        $prefixe = $this->request->getPost('prefixe');
-
-        if ($prefixe && $phone) {
-            $fullPhone = $prefixe . $phone;
-            $compte = $compteModel->where('tel', $fullPhone)->first();
-
-            if (! $compte) {
-                $compteId = $compteModel->insert(['tel' => $fullPhone]);
-                $compte = $compteModel->find($compteId);
+            if ($loginResult !== true) {
+                return $loginResult;
             }
-
-            $session->set('compte', [
-                'id' => $compte['id'],
-                'tel' => $compte['tel'],
-            ]);
         }
 
-        $compteSession = $session->get('compte');
+        $compteSession = session()->get('compte');
 
         if (! $compteSession) {
             return redirect()->to('/client/login');
         }
 
-        $idCompte = $compteSession['id'];
-        $data['soldeCompte'] = $operationModel->getSolde($idCompte);
-        $data['operations'] = $operationModel
-            ->select('operation.*, t.label as type_label')
-            ->join('type_operation t', 'operation.id_type = t.id')
-            ->groupStart()
-                ->where('operation.id_compte1', $idCompte)
-                ->orWhere('operation.id_compte2', $idCompte)
-            ->groupEnd()
-            ->orderBy('date_track', 'DESC')
-            ->findAll();
-        $data['compte'] = $compteSession;
+        $operationModel = new OperationModel();
+        $idCompte = (int) $compteSession['id'];
 
-        return view('client/dashboard', $data);
+        $perPage = 5;
+        $totalOperations = $operationModel->countHistorique($idCompte);
+        $totalPages = max(1, (int) ceil($totalOperations / $perPage));
+
+        $page = (int) ($this->request->getGet('page') ?? 1);
+        $page = max(1, min($page, $totalPages));
+
+        $operations = $operationModel->getHistorique($idCompte, $perPage, ($page - 1) * $perPage);
+
+        return view('client/dashboard', [
+            'compte'           => $compteSession,
+            'soldeCompte'      => $operationModel->getSolde($idCompte),
+            'operations'       => $operations,
+            'currentPage'      => $page,
+            'totalPages'       => $totalPages,
+            'totalOperations'  => $totalOperations,
+            'perPage'          => $perPage,
+        ]);
+    }
+
+    public function logout()
+    {
+        session()->remove('compte');
+        session()->destroy();
+
+        return redirect()->to('/client/login');
+    }
+
+    private function attemptLogin()
+    {
+        $prefixe = $this->request->getPost('prefixe');
+        $phone   = $this->request->getPost('phone');
+
+        $check = PhoneHelper::validate($prefixe, $phone);
+
+        if (! $check['valid']) {
+            return redirect()->to('/client/login')
+                ->withInput()
+                ->with('errors', $check['errors']);
+        }
+
+        $compteModel = new CompteModel();
+        $compte = $compteModel->where('tel', $check['phone'])->first();
+
+        if (! $compte) {
+            $compteId = $compteModel->insert(['tel' => $check['phone']]);
+
+            if (! $compteId) {
+                return redirect()->to('/client/login')
+                    ->withInput()
+                    ->with('errors', $compteModel->errors() ?: ['Impossible de créer le compte, veuillez réessayer.']);
+            }
+
+            $compte = $compteModel->find($compteId);
+        }
+
+        session()->set('compte', [
+            'id'  => $compte['id'],
+            'tel' => $compte['tel'],
+        ]);
+
+        return true;
     }
 }

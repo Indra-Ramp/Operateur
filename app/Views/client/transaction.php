@@ -122,12 +122,8 @@
 <span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">MobileMoney</span>
 </div>
 <div class="flex items-center gap-md">
-<button class="material-symbols-outlined p-sm rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors" data-icon="notifications">notifications</button>
-<button class="material-symbols-outlined p-sm rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors" data-icon="help">help</button>
-<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
-<img class="w-full h-full object-cover" data-alt="A professional headshot of a financial services user, looking confident and approachable. The lighting is soft and natural, emphasizing a secure and trustworthy corporate environment. The background is a blurred modern office space with subtle emerald green accents that align with the brand's primary color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMgarV6HYQPygUTXbMxIpBvARnh4bWINtk57ooY2_Tdg719AuGSkirIozZpEV6RD02ZoJKSoki_lcgAk2y4QIYlzPryhBMv5-OTkbO0gfKLptrTbUWXE_FO1GmUxJ6smK2mg-GUtVPrrgSPXhUOBVvgs8VHK35RpU-iqQ8JISpOPPTfjLnjgnNb4kaevBqizFleED9-OmGqX-gBnCLh8us1DIU3a_ivc30odH6t7bq4zyje6eu1_pHURv9ojyuRH7Rx0SJeDTR2po"/>
-</div>
-<span class="hidden md:block font-label-md text-on-surface-variant">Logout</span>
+<a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="/client/dashboard">Dashboard</a>
+<a class="text-primary font-label-md hover:underline" href="/client/logout">Logout</a>
 </div>
 </header>
 <main class="pt-24 pb-12 px-container-padding max-w-4xl mx-auto">
@@ -185,12 +181,12 @@
         <div class="absolute inset-y-0 left-0 flex items-center pl-md pointer-events-none">
             <span class="material-symbols-outlined text-outline" data-icon="phone_iphone">phone_iphone</span>
         </div>
-        <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" name="phone" placeholder="0000000000" type="tel" maxlength="10" />
+        <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" name="phone" id="destPhone" placeholder="0000000000" type="tel" inputmode="numeric" maxlength="10" />
     </div>
 </div>
 <p class="font-label-md text-on-surface-variant flex items-center gap-xs">
 <span class="material-symbols-outlined text-sm" data-icon="info">info</span>
-Please enter the recipient prefix and 10-digit phone number.
+Saisissez le préfixe et le numéro complet du destinataire (10 chiffres au total).
 </p>
 </div>
 <!-- Step 3: Amount -->
@@ -198,15 +194,15 @@ Please enter the recipient prefix and 10-digit phone number.
 <label class="block font-headline-md text-on-surface" id="amountLabel">2. Transaction Amount</label>
 <div class="relative flex items-center">
 <div class="flex items-center justify-center px-lg h-full bg-surface-container-high border border-outline-variant border-r-0 rounded-l-lg font-label-md text-on-surface-variant">
-                                    USD
+                                    Ar
                                 </div>
-<input class="w-full px-md py-md bg-surface-container-low border border-outline-variant rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none font-label-md text-lg" name="montant" placeholder="0.00" type="number" step="0.01"/>
+<input class="w-full px-md py-md bg-surface-container-low border border-outline-variant rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none font-label-md text-lg" name="montant" id="montantInput" placeholder="0" type="number" min="1" step="1"/>
 </div>
 <div class="flex flex-wrap gap-sm">
-<button class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">$10.00</button>
-<button class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">$50.00</button>
-<button class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">$100.00</button>
-<button class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">Max</button>
+<button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="5000">5 000 Ar</button>
+<button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="20000">20 000 Ar</button>
+<button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="50000">50 000 Ar</button>
+<button id="btn-max" class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">Max</button>
 </div>
 </div>
 <!-- Action -->
@@ -216,7 +212,7 @@ Please enter the recipient prefix and 10-digit phone number.
                                 <span class="material-symbols-outlined" data-icon="lock">lock</span>
 </button>
 <p class="mt-md text-center text-on-surface-variant font-label-md">
-                                Transaction processed via SecurePay V3 Protocol
+                                Vérifiez les informations avant de valider
                             </p>
 </div>
 </form>
@@ -227,11 +223,11 @@ Please enter the recipient prefix and 10-digit phone number.
 <!-- Balance Card -->
 <div class="bg-primary text-on-primary p-lg rounded-xl shadow-md relative overflow-hidden">
 <div class="relative z-10">
-<p class="font-label-md opacity-80 mb-xs">Available Liquidity</p>
-<h2 class="font-display text-display">$42,912.50</h2>
+<p class="font-label-md opacity-80 mb-xs">Solde disponible</p>
+<h2 class="font-display text-display"><?= number_format($soldeCompte, 0, ',', ' ') ?> <span class="text-xl font-normal">Ar</span></h2>
 <div class="mt-lg flex items-center gap-xs">
-<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
-<span class="font-label-md text-primary-fixed-dim">+2.4% this week</span>
+<span class="material-symbols-outlined text-sm" data-icon="phone_iphone">phone_iphone</span>
+<span class="font-label-md text-primary-fixed-dim"><?= esc($compte['tel'] ?? '') ?></span>
 </div>
 </div>
 <!-- Decorative pattern -->
@@ -243,29 +239,36 @@ Please enter the recipient prefix and 10-digit phone number.
 <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
 <div class="flex justify-between items-center mb-md">
 <h3 class="font-headline-md text-on-surface">Recent</h3>
-<a class="text-primary font-label-md hover:underline" href="#">View All</a>
+<a class="text-primary font-label-md hover:underline" href="/client/dashboard">View All</a>
 </div>
 <div class="space-y-md">
-<div class="flex items-center gap-md p-sm hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer">
-<div class="h-10 w-10 rounded-full bg-secondary-container flex items-center justify-center">
-<span class="material-symbols-outlined text-on-secondary-container" data-icon="arrow_outward">arrow_outward</span>
-</div>
-<div class="flex-1">
-<p class="font-body-md text-on-surface font-semibold">To Alex Rivera</p>
-<p class="text-xs text-on-surface-variant">Oct 24, 10:15 AM</p>
-</div>
-<p class="font-label-md text-on-surface">-$250.00</p>
-</div>
-<div class="flex items-center gap-md p-sm hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer">
-<div class="h-10 w-10 rounded-full bg-primary-container flex items-center justify-center">
-<span class="material-symbols-outlined text-on-primary-container" data-icon="arrow_downward">arrow_downward</span>
-</div>
-<div class="flex-1">
-<p class="font-body-md text-on-surface font-semibold">Wire Deposit</p>
-<p class="text-xs text-on-surface-variant">Oct 22, 02:30 PM</p>
-</div>
-<p class="font-label-md text-primary">+$1,400.00</p>
-</div>
+<?php if (! empty($recentes)): ?>
+    <?php $idCompte = (int) ($compte['id'] ?? 0); ?>
+    <?php foreach ($recentes as $op): ?>
+        <?php
+            $isOutgoing = ((int) $op['id_compte1'] === $idCompte);
+            $credit = ($op['type_label'] === 'depot') || ($op['type_label'] === 'transfert' && ! $isOutgoing);
+            $label = match ($op['type_label']) {
+                'depot'     => 'Dépôt',
+                'retrait'   => 'Retrait',
+                'transfert' => $isOutgoing ? 'Vers ' . esc($op['tel_compte2'] ?? 'N/A') : 'De ' . esc($op['tel_compte1'] ?? 'N/A'),
+                default     => esc($op['type_label']),
+            };
+        ?>
+        <div class="flex items-center gap-md p-sm hover:bg-surface-container-low rounded-lg transition-colors">
+            <div class="h-10 w-10 rounded-full <?= $credit ? 'bg-primary-container' : 'bg-secondary-container' ?> flex items-center justify-center">
+                <span class="material-symbols-outlined <?= $credit ? 'text-on-primary-container' : 'text-on-secondary-container' ?>" data-icon="<?= $credit ? 'arrow_downward' : 'arrow_outward' ?>"><?= $credit ? 'arrow_downward' : 'arrow_outward' ?></span>
+            </div>
+            <div class="flex-1">
+                <p class="font-body-md text-on-surface font-semibold"><?= $label ?></p>
+                <p class="text-xs text-on-surface-variant"><?= esc($op['date_track']) ?></p>
+            </div>
+            <p class="font-label-md <?= $credit ? 'text-primary' : 'text-on-surface' ?>"><?= $credit ? '+' : '-' ?> <?= number_format($op['montant'], 0, ',', ' ') ?> Ar</p>
+        </div>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p class="text-sm text-on-surface-variant">Aucune opération récente.</p>
+<?php endif; ?>
 </div>
 </div>
 <!-- Security Tip Card -->
@@ -282,6 +285,7 @@ Please enter the recipient prefix and 10-digit phone number.
 </div>
 </main>
 <script>
+        const soldeDisponible = <?= (float) $soldeCompte ?>;
         let currentOperation = 'transfer';
 
         function setOperation(type) {
@@ -302,23 +306,29 @@ Please enter the recipient prefix and 10-digit phone number.
 
             // Handle step conditional visibility
             const recipientSection = document.getElementById('recipientSection');
+            const destPhone = document.getElementById('destPhone');
             const amountLabel = document.getElementById('amountLabel');
+            const form = document.getElementById('transactionForm');
+            const operationType = document.getElementById('operationType');
 
             if (type === 'transfer') {
                 recipientSection.classList.remove('hidden');
                 setTimeout(() => recipientSection.classList.remove('opacity-0'), 10);
+                destPhone.required = true;
                 amountLabel.innerText = '3. Transaction Amount';
                 form.action = '/client/transfert';
                 operationType.value = 'transfer';
             } else if (type === 'deposit') {
                 recipientSection.classList.add('opacity-0');
                 setTimeout(() => recipientSection.classList.add('hidden'), 300);
+                destPhone.required = false;
                 amountLabel.innerText = '2. Transaction Amount';
                 form.action = '/client/depot';
                 operationType.value = 'depot';
             } else {
                 recipientSection.classList.add('opacity-0');
                 setTimeout(() => recipientSection.classList.add('hidden'), 300);
+                destPhone.required = false;
                 amountLabel.innerText = '2. Transaction Amount';
                 form.action = '/client/retrait';
                 operationType.value = 'retrait';
@@ -328,25 +338,26 @@ Please enter the recipient prefix and 10-digit phone number.
         // Initialize default state
         setOperation('transfer');
 
-        // Form submission micro-interaction
-        document.getElementById('transactionForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalContent = btn.innerHTML;
-            
-            btn.disabled = true;
-            btn.innerHTML = `<span class="material-symbols-outlined animate-spin" data-icon="progress_activity">progress_activity</span> Processing...`;
-            
-            setTimeout(() => {
-                btn.classList.replace('bg-primary', 'bg-secondary');
-                btn.innerHTML = `<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span> Success`;
-                
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.classList.replace('bg-secondary', 'bg-primary');
-                    btn.innerHTML = originalContent;
-                }, 2000);
-            }, 1500);
+        // Quick-amount shortcuts.
+        document.querySelectorAll('.quick-amount').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('montantInput').value = btn.dataset.amount;
+            });
         });
+        document.getElementById('btn-max').addEventListener('click', () => {
+            document.getElementById('montantInput').value = Math.max(0, Math.floor(soldeDisponible));
+        });
+
+        // Digits-only, 10-digit recipient phone (matches PhoneHelper server-side).
+        document.getElementById('destPhone').addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 10);
+        });
+
+        // NOTE: the form submits normally to the server (depot/retrait/transfert
+        // controllers), which validates the amount/solde and redirects back to
+        // the dashboard with a flash message. There is no client-side fake
+        // "success" animation here anymore: the previous version called
+        // e.preventDefault() and only ever showed a fake success state without
+        // ever sending the transaction to the server.
     </script>
 </body></html>

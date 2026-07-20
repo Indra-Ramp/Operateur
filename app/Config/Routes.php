@@ -10,6 +10,7 @@ $routes->group('client', function($routes){
     $routes->get('login', 'AuthController::index');
     $routes->post('dashboard', 'AuthController::dashboard');
     $routes->get('dashboard', 'AuthController::dashboard');
+    $routes->get('logout', 'AuthController::logout');
     $routes->get('transactions', 'OperationController::transactions');
     $routes->post('depot', 'OperationController::depot');
     $routes->post('retrait', 'OperationController::retrait');

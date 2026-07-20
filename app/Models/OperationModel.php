@@ -6,102 +6,226 @@ use CodeIgniter\Model;
 
 class OperationModel extends Model
 {
-    protected $table = 'operation';
-    protected $primaryKey = 'id';
+    protected $table         = 'operation';
+    protected $primaryKey    = 'id';
     protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track'];
 
-    public function getSolde($idCompte)
+    public const TYPE_RETRAIT   = 'retrait';
+    public const TYPE_TRANSFERT = 'transfert';
+    public const TYPE_DEPOT     = 'depot';
+
+    private array $typeCache = [];
+
+
+    protected function getTypeId(string $label): ?int
     {
-        $entrees = $this->builder()
-            ->selectSum('montant')
-            ->join('type_operation t', 'operation.id_type = t.id')
-            ->groupStart()
-                ->where(['t.label' => 'depot', 'operation.id_compte1' => $idCompte])
-                ->orWhere(['t.label' => 'transfert', 'operation.id_compte2' => $idCompte])
-            ->groupEnd()
-            ->get()
-            ->getRow()->montant ?? 0;
+        if (! array_key_exists($label, $this->typeCache)) {
+            $type = (new TypeOperationModel())->where('label', $label)->first();
+            $this->typeCache[$label] = $type['id'] ?? null;
+        }
 
-        $sorties = $this->builder()
-            ->selectSum('montant')
-            ->join('type_operation t', 'operation.id_type = t.id')
-            ->groupStart()
-                ->where(['t.label' => 'retrait', 'operation.id_compte1' => $idCompte])
-                ->orWhere(['t.label' => 'transfert', 'operation.id_compte1' => $idCompte])
-            ->groupEnd()
-            ->get()
-            ->getRow()->montant ?? 0;
-
-        return $entrees - $sorties;
+        return $this->typeCache[$label];
     }
 
-    protected function getFraisForMontant($montant, int $typeId)
+
+    public function getSolde(int $idCompte): float
     {
-        if (! is_numeric($montant) || $montant <= 0) {
+        $entrees = $this->db->table('operation o')
+            ->selectSum('o.montant')
+            ->join('type_operation t', 't.id = o.id_type')
+            ->groupStart()
+                ->where(['t.label' => self::TYPE_DEPOT, 'o.id_compte1' => $idCompte])
+                ->orWhere(['t.label' => self::TYPE_TRANSFERT, 'o.id_compte2' => $idCompte])
+            ->groupEnd()
+            ->get()
+            ->getRow()
+            ->montant ?? 0;
+
+        $sorties = $this->db->table('operation o')
+            ->selectSum('o.montant')
+            ->join('type_operation t', 't.id = o.id_type')
+            ->groupStart()
+                ->where(['t.label' => self::TYPE_RETRAIT, 'o.id_compte1' => $idCompte])
+                ->orWhere(['t.label' => self::TYPE_TRANSFERT, 'o.id_compte1' => $idCompte])
+            ->groupEnd()
+            ->get()
+            ->getRow()
+            ->montant ?? 0;
+
+        return (float) $entrees - (float) $sorties;
+    }
+
+
+    public function getHistorique(int $idCompte, ?int $limit = null, int $offset = 0): array
+    {
+        $builder = $this->historiqueBuilder($idCompte)
+            ->orderBy('o.date_track', 'DESC')
+            ->orderBy('o.id', 'DESC');
+
+        if ($limit !== null) {
+            $builder->limit($limit, $offset);
+        }
+
+        return $builder->get()->getResultArray();
+    }
+
+    public function countHistorique(int $idCompte): int
+    {
+        return $this->historiqueBuilder($idCompte)->countAllResults();
+    }
+
+    private function historiqueBuilder(int $idCompte)
+    {
+        return $this->db->table('operation o')
+            ->select('o.*, t.label as type_label, c1.tel as tel_compte1, c2.tel as tel_compte2')
+            ->join('type_operation t', 't.id = o.id_type')
+            ->join('compte c1', 'c1.id = o.id_compte1')
+            ->join('compte c2', 'c2.id = o.id_compte2', 'left')
+            ->groupStart()
+                ->where('o.id_compte1', $idCompte)
+                ->orWhere('o.id_compte2', $idCompte)
+            ->groupEnd();
+    }
+
+  
+    protected function getFrais(float $montant, int $typeId): float
+    {
+        if ($montant <= 0) {
             return 0;
         }
 
-        $trancheModel = new TrancheModel();
-        $tranche = $trancheModel
+        $tranche = (new TrancheModel())
             ->where('id_type', $typeId)
             ->where('montant1 <=', $montant)
             ->where('montant2 >=', $montant)
             ->first();
 
-        return $tranche['frais'] ?? 0;
+        return (float) ($tranche['frais'] ?? 0);
     }
 
-    protected function insertOperation(int $typeId, int $compte1Id, float $montant, ?int $compte2Id = null)
+    protected function insertOperation(int $typeId, int $compte1Id, float $montant, ?int $compte2Id = null): bool
     {
-        return $this->insert([
-            'id_type' => $typeId,
+        return (bool) $this->insert([
+            'id_type'    => $typeId,
             'id_compte1' => $compte1Id,
             'id_compte2' => $compte2Id,
-            'montant' => $montant,
+            'montant'    => $montant,
             'date_track' => date('Y-m-d'),
         ]);
     }
 
-    public function depot(int $compteId, float $montant)
+ 
+    public function depot(int $compteId, float $montant): array
     {
-        if ($compteId <= 0 || $montant <= 0) {
-            return false;
+        if ($compteId <= 0) {
+            return $this->fail('Compte invalide.');
         }
 
-        return $this->insertOperation(3, $compteId, $montant, null);
+        if ($montant <= 0) {
+            return $this->fail('Le montant du dépôt doit être supérieur à 0.');
+        }
+
+        $typeId = $this->getTypeId(self::TYPE_DEPOT);
+
+        if (! $typeId || ! $this->insertOperation($typeId, $compteId, $montant)) {
+            return $this->fail('Le dépôt a échoué, veuillez réessayer.');
+        }
+
+        return $this->success('Dépôt de ' . $this->formatMontant($montant) . ' Ar effectué avec succès.');
     }
 
-    public function retrait(int $compteId, float $montant)
+
+    public function retrait(int $compteId, float $montant): array
     {
-        if ($compteId <= 0 || $montant <= 0) {
-            return false;
+        if ($compteId <= 0) {
+            return $this->fail('Compte invalide.');
         }
 
-        $operationId = $this->insertOperation(1, $compteId, $montant, null);
-        $frais = $this->getFraisForMontant($montant, 1);
+        if ($montant <= 0) {
+            return $this->fail('Le montant du retrait doit être supérieur à 0.');
+        }
+
+        $typeId = $this->getTypeId(self::TYPE_RETRAIT);
+
+        if (! $typeId) {
+            return $this->fail("Le type d'opération \"retrait\" est introuvable.");
+        }
+
+        $frais = $this->getFrais($montant, $typeId);
+        $total = $montant + $frais;
+
+        if ($total > $this->getSolde($compteId)) {
+            return $this->fail('Solde insuffisant pour ce retrait (montant + frais de ' . $this->formatMontant($frais) . ' Ar).');
+        }
+
+        if (! $this->insertOperation($typeId, $compteId, $montant)) {
+            return $this->fail('Le retrait a échoué, veuillez réessayer.');
+        }
 
         if ($frais > 0) {
-            $this->insertOperation(1, $compteId, $frais, null);
+            $this->insertOperation($typeId, $compteId, $frais);
         }
 
-        return $operationId;
+        $message = 'Retrait de ' . $this->formatMontant($montant) . ' Ar effectué avec succès';
+        $message .= $frais > 0 ? ' (frais : ' . $this->formatMontant($frais) . ' Ar).' : '.';
+
+        return $this->success($message);
     }
 
-    public function transfert(int $compte1Id, int $compte2Id, float $montant)
+    public function transfert(int $compte1Id, int $compte2Id, float $montant): array
     {
-        if ($compte1Id <= 0 || $compte2Id <= 0 || $montant <= 0) {
-            return false;
+        if ($compte1Id <= 0 || $compte2Id <= 0) {
+            return $this->fail('Compte invalide.');
         }
 
-        $operationId = $this->insertOperation(2, $compte1Id, $montant, $compte2Id);
-        $frais = $this->getFraisForMontant($montant, 2);
+        if ($compte1Id === $compte2Id) {
+            return $this->fail('Vous ne pouvez pas transférer de l\'argent vers votre propre compte.');
+        }
+
+        if ($montant <= 0) {
+            return $this->fail('Le montant du transfert doit être supérieur à 0.');
+        }
+
+        $typeTransfert = $this->getTypeId(self::TYPE_TRANSFERT);
+        $typeRetrait   = $this->getTypeId(self::TYPE_RETRAIT);
+
+        if (! $typeTransfert || ! $typeRetrait) {
+            return $this->fail("Les types d'opération sont introuvables.");
+        }
+
+        $frais = $this->getFrais($montant, $typeTransfert);
+        $total = $montant + $frais;
+
+        if ($total > $this->getSolde($compte1Id)) {
+            return $this->fail('Solde insuffisant pour ce transfert (montant + frais de ' . $this->formatMontant($frais) . ' Ar).');
+        }
+
+        if (! $this->insertOperation($typeTransfert, $compte1Id, $montant, $compte2Id)) {
+            return $this->fail('Le transfert a échoué, veuillez réessayer.');
+        }
 
         if ($frais > 0) {
-            $this->insertOperation(1, $compte1Id, $frais, null);
+            $this->insertOperation($typeRetrait, $compte1Id, $frais);
         }
 
-        return $operationId;
+        $message = 'Transfert de ' . $this->formatMontant($montant) . ' Ar effectué avec succès';
+        $message .= $frais > 0 ? ' (frais : ' . $this->formatMontant($frais) . ' Ar).' : '.';
+
+        return $this->success($message);
+    }
+
+    private function formatMontant(float $montant): string
+    {
+        return number_format($montant, 0, ',', ' ');
+    }
+
+    private function fail(string $message): array
+    {
+        return ['success' => false, 'message' => $message];
+    }
+
+    private function success(string $message): array
+    {
+        return ['success' => true, 'message' => $message];
     }
 }
-
-?>

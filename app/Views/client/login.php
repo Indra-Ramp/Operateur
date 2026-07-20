@@ -132,28 +132,35 @@
 <p class="font-body-md text-on-surface-variant text-center">Securely access your MobileMoney account</p>
 </div>
 <!-- Login Form -->
+<?php $errors = session()->getFlashdata('errors') ?? []; ?>
+<?php if (! empty($errors)): ?>
+<div class="rounded-lg border border-error text-error bg-error/10 px-md py-sm font-medium space-y-1">
+    <?php foreach ($errors as $error): ?>
+        <p class="flex items-start gap-xs"><span class="material-symbols-outlined text-base leading-none mt-[2px]">error</span><span><?= esc($error) ?></span></p>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
 <form class="space-y-md" method="post" action="/client/dashboard">
 <!-- Phone Number Group -->
 <div class="space-y-sm">
+<div class="flex justify-between items-center">
 <label class="font-label-md text-label-md text-outline uppercase tracking-wider block" for="phone">Phone Number</label>
+<span id="digitCounter" class="font-label-md text-label-md text-outline-variant">0/10</span>
+</div>
 <div class="flex h-12 w-full rounded-lg border border-outline-variant bg-surface-container-lowest overflow-hidden transition-all duration-200 input-focus-ring">
 <!-- Prefix Dropdown -->
 <div class="relative group">
-<select class="h-full bg-surface-container-low px-md pr-sm border-r border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none" name="prefixe">
-<!-- <option value="+221">+221 (SN)</option> -->
-<?php foreach ($prefixes as $p):?>
-    <option value="<?= $p['id']?>"><?= $p['label']?></option>
-<?php endforeach?>
-<!-- <option value="+225">+225 (CI)</option>
-<option value="+224">+224 (GN)</option>
-<option value="+233">+233 (GH)</option>
-<option value="+234">+234 (NG)</option> -->
+<select class="h-full bg-surface-container-low px-md pr-sm border-r border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none" name="prefixe" id="prefixe">
+<?php foreach ($prefixes as $p): ?>
+    <option value="<?= esc($p['label']) ?>" <?= old('prefixe') === $p['label'] ? 'selected' : '' ?>><?= esc($p['label']) ?></option>
+<?php endforeach ?>
 </select>
 <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
 </div>
-<!-- Number Input -->
-<input class="flex-1 px-md border-none focus:ring-0 text-on-surface placeholder:text-outline-variant font-body-lg bg-transparent" name="phone" placeholder="000 000 000" type="tel"/>
+<!-- Number Input: full 10-digit local number, prefix included -->
+<input class="flex-1 px-md border-none focus:ring-0 text-on-surface placeholder:text-outline-variant font-body-lg bg-transparent" name="phone" id="phone" placeholder="XX XXX XXXX" type="tel" inputmode="numeric" maxlength="10" value="<?= esc(old('phone') ?? '') ?>"/>
 </div>
+<p id="phoneHint" class="font-label-md text-label-md text-on-surface-variant">Saisissez votre numéro complet (préfixe inclus), 10 chiffres au total.</p>
 </div>
 <!-- Password Input
 <div class="space-y-sm">
@@ -203,13 +210,43 @@
 <script>
         document.addEventListener('DOMContentLoaded', () => {
             const pinInput = document.getElementById('pin');
-            const toggleBtn = pinInput.nextElementSibling;
-            
-            toggleBtn.addEventListener('click', () => {
-                const isPassword = pinInput.type === 'password';
-                pinInput.type = isPassword ? 'text' : 'password';
-                toggleBtn.querySelector('.material-symbols-outlined').textContent = isPassword ? 'visibility_off' : 'visibility';
-            });
+            if (pinInput) {
+                const toggleBtn = pinInput.nextElementSibling;
+                toggleBtn.addEventListener('click', () => {
+                    const isPassword = pinInput.type === 'password';
+                    pinInput.type = isPassword ? 'text' : 'password';
+                    toggleBtn.querySelector('.material-symbols-outlined').textContent = isPassword ? 'visibility_off' : 'visibility';
+                });
+            }
+
+            // Live "X/10 chiffres" feedback so the user knows exactly how
+            // many digits are still missing before they can submit.
+            const phoneInput = document.getElementById('phone');
+            const counter = document.getElementById('digitCounter');
+            const hint = document.getElementById('phoneHint');
+
+            const updateCounter = () => {
+                const digits = phoneInput.value.replace(/\D/g, '');
+                phoneInput.value = digits;
+                counter.textContent = `${digits.length}/10`;
+
+                if (digits.length === 10) {
+                    counter.classList.remove('text-outline-variant', 'text-error');
+                    counter.classList.add('text-primary');
+                    hint.textContent = 'Numéro complet.';
+                    hint.classList.remove('text-error');
+                } else {
+                    counter.classList.remove('text-primary');
+                    counter.classList.add(digits.length > 10 ? 'text-error' : 'text-outline-variant');
+                    hint.textContent = digits.length > 10
+                        ? `Trop de chiffres (${digits.length - 10} en trop).`
+                        : `Il manque ${10 - digits.length} chiffre(s).`;
+                    hint.classList.toggle('text-error', digits.length > 10);
+                }
+            };
+
+            phoneInput.addEventListener('input', updateCounter);
+            updateCounter();
 
             // Card entrance animation
             const card = document.querySelector('.login-card');
