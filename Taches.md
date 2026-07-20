@@ -1,6 +1,7 @@
 # Operateur - V1
 
 ## ETU004045:
+- Creation de notre template
 - Cote operateur :
   - Creation des modeles :
     - TypeOperationModel.php
