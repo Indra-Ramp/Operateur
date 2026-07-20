@@ -54,3 +54,7 @@
 ## ETU004086
 
 ## ETU004045
+- Creation table operateurs (id, label)
+- modification table prefixe: ajout de colonne id_operateur (NULL raha ohatra ka le operateur-nay ihany)
+- Creation table commission (id, id_operateur, perc)
+- 
