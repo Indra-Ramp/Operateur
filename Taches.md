@@ -12,6 +12,23 @@
   - Creation des controllers :
     - PrefixeController.php
     - FraisController.php
+  - Configuration prefixe :
+    - Creation fonction PrefixeController::displayForm
+    - Creation fonction PrefixeController::addPrefix
+    - Creation des Routes :
+      - GET:/operateur/prefix
+      - POST:/operateur/prefix/new
+  - Configuration des frais :
+    - Insertion des types d'operation en base
+    - Creation des fonctions :
+      - FraisController::listOperation
+      - FraisController::list
+      - FraisController::update
+    - Creation des routes :
+      - GET:/operateur/choose-operation
+      - GET:/operateur/list-fees/{id}
+      - POST:/operateur/fee/update 
+      - POST:/operateur/fee/add
 ## ETU004086:
 - Creation de repository (5 minutes)
 - Creation base de donnees

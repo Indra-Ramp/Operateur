@@ -3,6 +3,8 @@ CREATE TABLE type_operation(
     label VARCHAR(20)
 );
 
+ALTER TABLE type_operation ADD description TEXT;
+
 CREATE TABLE tranche(
     id INTEGER PRIMARY KEY ,
     id_type INTEGER,
@@ -14,17 +16,13 @@ CREATE TABLE tranche(
 
 CREATE TABLE prefixe(
     id INTEGER PRIMARY KEY ,
-    label VARCHAR(20)
+    label VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE compte(
     id INTEGER PRIMARY KEY ,
-    nom VARCHAR(50),
-    prenom VARCHAR(50),
-    date_naissance DATE,
-    gender VARCHAR(10),
-    tel VARCHAR(10),
-    adresse VARCHAR(50)
+    tel VARCHAR(10)
 );
 
 CREATE TABLE operation(
@@ -48,3 +46,19 @@ INSERT INTO prefixe('label') VALUES
 ('036'),
 ('037'),
 ('038');
+
+INSERT INTO type_operation (label) VALUES
+('retrait'), ('transfert'), ('depot');
+
+UPDATE type_operation SET description=
+"Opérations de retrait via agents ou distributeurs. Définissez des frais fixes ou en pourcentage."
+WHERE label = 'retrait';
+
+UPDATE type_operation SET description=
+"Envois de fonds de compte à compte ou vers l'externe. Ajustez les grilles tarifaires."
+WHERE label = 'transfert';
+
+UPDATE type_operation SET description=
+"Transactions de dépôt et alimentation de compte. Gérez les commissions agents."
+WHERE label = 'depot';
+
