@@ -19,6 +19,7 @@
   - prefixe (id, label)
   - compte (id, tel, nom, prenom, date_naissance, genre, adresse)
   - operation (id, id_type, id_compte1, id_compte2, date_track, montant)
+- Configuration du fichier App/Config/Database.php
 - Cote client :
   - Creation des controllers :
     - AuthController.php
