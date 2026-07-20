@@ -46,6 +46,8 @@
             $operationModel = new OperationModel();
             $operationData = $operationModel->where('id_operateur', $idOperateur)->findAll();
             $data['operation'] = $operationData;
+            $data['sum'] = $operationModel->getTotalSituation($idOperateur);
+            
         }
     }
 

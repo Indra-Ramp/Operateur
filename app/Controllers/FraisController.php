@@ -21,165 +21,125 @@
             return view('operateur/list_fees', $data);
         }
 
-       public function stats() 
-{
-    $operationModel = new OperationModel();
+        public function stats() {
+            $operationModel = new OperationModel();
+            // 1. Détection du mode et calcul des dates de la même manière
+            $weekOffsetParam = $this->request->getGet('week_offset');
+            $isGlobalMode = ($weekOffsetParam === null);
 
-    // 1. Détection du mode : Semaine spécifique OU Bilan Global
-    $weekOffsetParam = $this->request->getGet('week_offset');
-    $isGlobalMode = ($weekOffsetParam === null);
+            if (!$isGlobalMode) {
+                $weekOffset = (int)$weekOffsetParam;
+                $currentDate = new \DateTime();
+                if ($weekOffset !== 0) {
+                    $currentDate->modify("$weekOffset weeks");
+                }
+                $monday = clone $currentDate->modify('monday this week');
+                $sunday = clone $currentDate->modify('sunday this week');
 
-    if (!$isGlobalMode) {
-        // --- MODE SEMAINE ---
-        $weekOffset = (int)$weekOffsetParam;
-        $currentDate = new \DateTime();
-        if ($weekOffset !== 0) {
-            $currentDate->modify("$weekOffset weeks");
-        }
-        
-        $monday = clone $currentDate;
-        $monday->modify('monday this week');
-        $sunday = clone $currentDate;
-        $sunday->modify('sunday this week');
-
-        $startDate = $monday->format('Y-m-d');
-        $endDate = $sunday->format('Y-m-d');
-
-        // Récupération ciblée sur la semaine
-        $withdrawalOps = $operationModel->where('date_track >=', $startDate)->where('date_track <=', $endDate)->where('id_type', 1)->orderBy('date_track', 'ASC')->findAll();
-        $transferOps   = $operationModel->where('date_track >=', $startDate)->where('date_track <=', $endDate)->where('id_type', 2)->orderBy('date_track', 'ASC')->findAll();
-        
-        $graphStartDate = $startDate;
-        $graphEndDate   = $endDate;
-    } else {
-        // --- MODE BILAN GLOBAL ---
-        $weekOffset = null;
-        
-        // Récupération de l'intégralité absolue des opérations
-        $withdrawalOps = $operationModel->where('id_type', 1)->orderBy('date_track', 'ASC')->findAll();
-        $transferOps   = $operationModel->where('id_type', 2)->orderBy('date_track', 'ASC')->findAll();
-
-        // Détermination de la période du graphique (7 derniers jours par rapport à aujourd'hui)
-        $graphEndDate   = date('Y-m-d');
-        $graphStartDate = date('Y-m-d', strtotime('-6 days'));
-        
-        $startDate = 'Origine';
-        $endDate   = 'Aujourd\'hui';
-    }
-
-    // 2. Initialisation des deux structures fixes pour le graphique
-    $dailyInternalStructure = [];
-    $dailyExternalStructure = [];
-    $graphPeriod = new \DatePeriod(
-        new \DateTime($graphStartDate), 
-        new \DateInterval('P1D'), 
-        (new \DateTime($graphEndDate))->modify('+1 day')
-    );
-    
-    foreach ($graphPeriod as $date) {
-        $dayKey = $date->format('Y-m-d');
-        $dailyInternalStructure[$dayKey] = 0;
-        $dailyExternalStructure[$dayKey] = 0;
-    }
-
-    // Variables de cumul
-    $withdrawalFees = 0;
-    $withdrawalCount = count($withdrawalOps);
-
-    $transferInternalFees = 0;
-    $transferInternalCount = 0;
-    $transferExternalFees = 0;
-    $transferExternalCount = 0;
-
-    // 3. Cumul des Retraits (Considérés comme Internes / Propres au réseau opérateur)
-    foreach ($withdrawalOps as $operation) {
-        $fee = (float)($operation['frais'] ?? 0);
-        $withdrawalFees += $fee;
-
-        $dateRaw = isset($operation['date_track']) ? trim($operation['date_track']) : null;
-        if ($dateRaw) {
-            $dayKey = substr($dateRaw, 0, 10);
-            if (array_key_exists($dayKey, $dailyInternalStructure)) {
-                $dailyInternalStructure[$dayKey] += $fee;
+                $startDate = $monday->format('Y-m-d');
+                $endDate = $sunday->format('Y-m-d');
+                
+                $graphStartDate = $startDate;
+                $graphEndDate   = $endDate;
+            } else {
+                $weekOffset = null;
+                $graphEndDate   = date('Y-m-d');
+                $graphStartDate = date('Y-m-d', strtotime('-6 days'));
+                
+                $startDate = 'Origine';
+                $endDate   = 'Aujourd\'hui';
             }
-        }
-    }
 
-    // 4. Cumul des Transferts avec séparation Interne / Externe dans le graphique
-    foreach ($transferOps as $operation) {
-        $fee = (float)($operation['frais'] ?? 0);
-        $dateRaw = isset($operation['date_track']) ? trim($operation['date_track']) : null;
-        $dayKey = $dateRaw ? substr($dateRaw, 0, 10) : null;
-        
-        if (empty($operation['id_operateur'])) {
-            $transferInternalFees += $fee;
-            $transferInternalCount++;
+            // ==========================================
+            // REQUÊTE 1 : LES TOTAUX GLOBAUX (Résumé)
+            // ==========================================
             
-            if ($dayKey && array_key_exists($dayKey, $dailyInternalStructure)) {
-                $dailyInternalStructure[$dayKey] += $fee;
-            }
-        } else {
-            $transferExternalFees += $fee;
-            $transferExternalCount++;
+            $globalStats = $operationModel->getStat($startDate, $endDate, $isGlobalMode);
 
-            if ($dayKey && array_key_exists($dayKey, $dailyExternalStructure)) {
-                $dailyExternalStructure[$dayKey] += $fee;
+            // Extraction et typage des résultats de la requête 1
+            $wFees = (float)($globalStats['withdrawalFees'] ?? 0);
+            $wCount = (int)($globalStats['withdrawalCount'] ?? 0);
+            
+            $tInternalFees = (float)($globalStats['transferInternalFees'] ?? 0);
+            $tInternalCount = (int)($globalStats['transferInternalCount'] ?? 0);
+            
+            $tExternalFees = (float)($globalStats['transferExternalFees'] ?? 0);
+            $tExternalCount = (int)($globalStats['transferExternalCount'] ?? 0);
+
+            $totalTransferFees = $tInternalFees + $tExternalFees;
+            $totalTransferCount = $tInternalCount + $tExternalCount;
+            
+            $totalFees = $wFees + $totalTransferFees;
+            $transactionCount = $wCount + $totalTransferCount;
+            $averageFee = $transactionCount > 0 ? round($totalFees / $transactionCount) : 0;
+
+            // ==========================================
+            // REQUÊTE 2 : VENTILATION JOURNALIÈRE (Graphique)
+            // ==========================================
+            // On ne prend que les lignes qui entrent dans la zone du graphique
+            
+            $graphRows = $operationModel->getGraphStat($graphStartDate, $graphEndDate);
+            // var_dump($graphRows);
+            // return;
+            // Indexer le résultat par date pour un accès rapide
+            $indexedGraph = [];
+            foreach ($graphRows as $row) {
+                $indexedGraph[$row['date_jour']] = $row;
             }
+
+            // 2. Remplissage de la structure fixe pour le graphique (pour éviter les trous)
+            $dailyLabels = [];
+            $dailyInternalValues = [];
+            $dailyExternalValues = [];
+            
+            $graphPeriod = new \DatePeriod(
+                new \DateTime($graphStartDate), 
+                new \DateInterval('P1D'), 
+                (new \DateTime($graphEndDate))->modify('+1 day')
+            );
+            
+            foreach ($graphPeriod as $date) {
+                $dayKey = $date->format('Y-m-d');
+                $dailyLabels[] = $date->format('d M');
+                
+                // Si le jour existe en BDD on prend la valeur, sinon 0
+                $dailyInternalValues[] = (float)($indexedGraph[$dayKey]['daily_internal'] ?? 0);
+                $dailyExternalValues[] = (float)($indexedGraph[$dayKey]['daily_external'] ?? 0);
+            }
+
+            // 7. Envoi à la vue (La structure reste identique pour ne pas casser votre vue)
+            $data = [
+                'activePage'          => 'stats',
+                'isGlobalMode'        => $isGlobalMode,
+                'startDate'           => $startDate,
+                'endDate'             => $endDate,
+                'weekOffset'          => $weekOffset,
+                'summary'             => [
+                    'withdrawalFees'   => $wFees,
+                    'transferFees'     => $totalTransferFees,
+                    'totalFees'        => $totalFees,
+                    'averageFee'       => $averageFee,
+                    'transactionCount' => $transactionCount,
+                ],
+                'breakdown'           => [
+                    ['label' => 'Retrait', 'total' => $wFees, 'count' => $wCount, 'avg' => $wCount > 0 ? round($wFees / $wCount) : 0],
+                    ['label' => 'Transfert Interne', 'total' => $tInternalFees, 'count' => $tInternalCount, 'avg' => $tInternalCount > 0 ? round($tInternalFees / $tInternalCount) : 0],
+                    ['label' => 'Transfert Externe', 'total' => $tExternalFees, 'count' => $tExternalCount, 'avg' => $tExternalCount > 0 ? round($tExternalFees / $tExternalCount) : 0],
+                    ['label' => 'Total', 'total' => $totalFees, 'count' => $transactionCount, 'avg' => $averageFee],
+                ],
+                'dailyLabels'         => $dailyLabels,
+                'dailyInternalValues' => $dailyInternalValues,
+                'dailyExternalValues' => $dailyExternalValues,
+                'tableRows'           => [
+                    ['title' => 'Retrait', 'amount' => $wFees, 'transactions' => $wCount, 'margin' => $wCount > 0 ? '18,4 %' : '0 %'],
+                    ['title' => 'Transfert (Notre Opérateur)', 'amount' => $tInternalFees, 'transactions' => $tInternalCount, 'margin' => $tInternalCount > 0 ? '14,2 %' : '0 %'],
+                    ['title' => 'Transfert (Autres Opérateurs)', 'amount' => $tExternalFees, 'transactions' => $tExternalCount, 'margin' => $tExternalCount > 0 ? '12,5 %' : '0 %'],
+                    ['title' => 'Total', 'amount' => $totalFees, 'transactions' => $transactionCount, 'margin' => '16,5 %'],
+                ],
+            ];
+
+            return view('operateur/stats', $data);
         }
-    }
-
-    // 5. Indicateurs globaux
-    $totalTransferFees = $transferInternalFees + $transferExternalFees;
-    $totalTransferCount = $transferInternalCount + $transferExternalCount;
-    
-    $totalFees = $withdrawalFees + $totalTransferFees;
-    $transactionCount = $withdrawalCount + $totalTransferCount;
-    $averageFee = $transactionCount > 0 ? round($totalFees / $transactionCount) : 0;
-
-    // 6. Extraction des deux séries de données pour Chart.js
-    $dailyLabels = [];
-    $dailyInternalValues = [];
-    $dailyExternalValues = [];
-    
-    foreach ($dailyInternalStructure as $dateStr => $internalFee) {
-        $dailyLabels[] = date('d M', strtotime($dateStr));
-        $dailyInternalValues[] = $internalFee;
-        $dailyExternalValues[] = $dailyExternalStructure[$dateStr] ?? 0;
-    }
-
-    // 7. Envoi à la vue
-    $data = [
-        'activePage'          => 'stats',
-        'isGlobalMode'        => $isGlobalMode,
-        'startDate'           => $startDate,
-        'endDate'             => $endDate,
-        'weekOffset'          => $weekOffset,
-        'summary'             => [
-            'withdrawalFees'   => $withdrawalFees,
-            'transferFees'     => $totalTransferFees,
-            'totalFees'        => $totalFees,
-            'averageFee'       => $averageFee,
-            'transactionCount' => $transactionCount,
-        ],
-        'breakdown'           => [
-            ['label' => 'Retrait', 'total' => $withdrawalFees, 'count' => $withdrawalCount, 'avg' => $withdrawalCount > 0 ? round($withdrawalFees / $withdrawalCount) : 0],
-            ['label' => 'Transfert Interne', 'total' => $transferInternalFees, 'count' => $transferInternalCount, 'avg' => $transferInternalCount > 0 ? round($transferInternalFees / $transferInternalCount) : 0],
-            ['label' => 'Transfert Externe', 'total' => $transferExternalFees, 'count' => $transferExternalCount, 'avg' => $transferExternalCount > 0 ? round($transferExternalFees / $transferExternalCount) : 0],
-            ['label' => 'Total', 'total' => $totalFees, 'count' => $transactionCount, 'avg' => $averageFee],
-        ],
-        'dailyLabels'         => $dailyLabels,
-        'dailyInternalValues' => $dailyInternalValues,
-        'dailyExternalValues' => $dailyExternalValues,
-        'tableRows'           => [
-            ['title' => 'Retrait', 'amount' => $withdrawalFees, 'transactions' => $withdrawalCount, 'margin' => $withdrawalCount > 0 ? '18,4 %' : '0 %'],
-            ['title' => 'Transfert (Notre Opérateur)', 'amount' => $transferInternalFees, 'transactions' => $transferInternalCount, 'margin' => $transferInternalCount > 0 ? '14,2 %' : '0 %'],
-            ['title' => 'Transfert (Autres Opérateurs)', 'amount' => $transferExternalFees, 'transactions' => $transferExternalCount, 'margin' => $transferExternalCount > 0 ? '12,5 %' : '0 %'],
-            ['title' => 'Total', 'amount' => $totalFees, 'transactions' => $transactionCount, 'margin' => '16,5 %'],
-        ],
-    ];
-
-    return view('operateur/stats', $data);
-}
 
         protected function calculateWithdrawalFeeStats(array $withdrawalOps, OperationModel $operationModel): array
         {
