@@ -4,10 +4,10 @@
 
     use CodeIgniter\Model;
 
-    class PrefixeModel extends Model{
-        protected $table = 'prefixe';
+    class OperateurModel extends Model{
+        protected $table = 'operateur';
         protected $primaryKey = 'id';
-        protected $allowedFields = ['label', 'created_at', 'id_operateur'];
+        protected $allowedFields = ['label'];
         protected $validationRules = [
             'label' => 'required|is_unique[prefixe.label]'
         ];

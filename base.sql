@@ -62,3 +62,27 @@ UPDATE type_operation SET description=
 "Transactions de dépôt et alimentation de compte. Gérez les commissions agents."
 WHERE label = 'depot';
 
+-- V2 --
+
+CREATE TABLE operateur (
+    id INTEGER PRIMARY KEY,
+    label VARCHAR(255)
+);
+
+ALTER TABLE prefixe ADD id_operateur INTEGER;
+
+ALTER TABLE operation ADD id_operateur INTEGER;
+
+ALTER TABLE operation ADD frais NUMBER;
+
+ALTER TABLE operation ADD commission NUMBER;
+
+INSERT INTO operateur (label) VALUES
+('YAS'), ('Airtel Money'), ('Orange Money'), ('Blueline');
+
+CREATE TABLE commission (
+    id INTEGER PRIMARY KEY,
+    id_operateur INTEGER,
+    perc FLOAT,
+    FOREIGN KEY (id_operateur) REFERENCES operateur(id)
+);
