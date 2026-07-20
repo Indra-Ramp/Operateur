@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\PhoneHelper;
 use App\Models\CompteModel;
 use App\Models\OperationModel;
 use App\Models\PrefixeModel;
@@ -24,7 +25,7 @@ class AuthController extends BaseController
 
     public function dashboard()
     {
-        if ($this->request->getPost()) {
+        if ($this->request->getMethod() === 'post') {
             $loginResult = $this->attemptLogin();
 
             if ($loginResult !== true) {
@@ -50,14 +51,10 @@ class AuthController extends BaseController
 
         $operations = $operationModel->getHistorique($idCompte, $perPage, ($page - 1) * $perPage);
 
-        $prefixeModel = new PrefixeModel();
-        $prefixes = $prefixeModel->findAll();
-
         return view('client/dashboard', [
             'compte'           => $compteSession,
             'soldeCompte'      => $operationModel->getSolde($idCompte),
-            'recentes'         => $operations,
-            'prefixes'         => $prefixes,
+            'operations'       => $operations,
             'currentPage'      => $page,
             'totalPages'       => $totalPages,
             'totalOperations'  => $totalOperations,
@@ -73,21 +70,24 @@ class AuthController extends BaseController
         return redirect()->to('/client/login');
     }
 
-    private function attemptLogin(){
+    private function attemptLogin()
+    {
         $prefixe = $this->request->getPost('prefixe');
         $phone   = $this->request->getPost('phone');
 
-        $check = $this->checkPhone($prefixe, $phone);
+        $check = PhoneHelper::validate($prefixe, $phone);
 
         if (! $check['valid']) {
-            return redirect()->to('/client/login')->withInput()->with('errors', $check['errors']);
+            return redirect()->to('/client/login')
+                ->withInput()
+                ->with('errors', $check['errors']);
         }
 
         $compteModel = new CompteModel();
-        $compte = $compteModel->where('tel', $check['tel'])->first();
+        $compte = $compteModel->where('tel', $check['phone'])->first();
 
         if (! $compte) {
-            $compteId = $compteModel->insert(['tel' => $check['tel']]);
+            $compteId = $compteModel->insert(['tel' => $check['phone']]);
 
             if (! $compteId) {
                 return redirect()->to('/client/login')
@@ -104,24 +104,5 @@ class AuthController extends BaseController
         ]);
 
         return true;
-    }
-
-    /**
-     * Préfixe (ex: 032) = 3 chiffres, phone (suite) = 7 chiffres.
-     * Total = 10 chiffres, jamais 10 chiffres après le préfixe.
-     */
-    private function checkPhone($prefixe, $phone){
-        $prefixe = trim((string) $prefixe);
-        $phone   = trim((string) $phone);
-
-        if (! preg_match('/^\d{3}$/', $prefixe)) {
-            return ['valid' => false, 'errors' => ['Le prefixe doit contenir exactement 3 chiffres (ex : 032).']];
-        }
-
-        if (! preg_match('/^\d{7}$/', $phone)) {
-            return ['valid' => false, 'errors' => ['Le numero doit contenir exactement 7 chiffres apres le prefixe.']];
-        }
-
-        return ['valid' => true, 'errors' => ['Votre numero n\'est pas valide.'], 'tel' => $prefixe . $phone];
     }
 }

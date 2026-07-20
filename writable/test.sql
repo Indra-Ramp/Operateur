@@ -13,8 +13,8 @@ INSERT INTO compte (id, tel) VALUES
 
 -- Cas A : Dépôts d'argent (Alimentation du compte chez un agent)
 INSERT INTO operation (id_type, id_compte1, id_compte2, montant, date_track) VALUES
-(3, 4, 1, 50000,  '2026-07-15'),  -- L'agent (4) dépose 50 000 Ar sur le compte du Client A (1)
-(3, 5, 2, 150000, '2026-07-16');  -- L'agent (5) dépose 150 000 Ar sur le compte du Client B (2)
+(3, 4, null, 50000,  '2026-07-15'),  -- L'agent (4) dépose 50 000 Ar sur le compte du Client A (1)
+(3, 5, null, 150000, '2026-07-16');  -- L'agent (5) dépose 150 000 Ar sur le compte du Client B (2)
 
 -- Cas B : Transferts de compte à compte (P2P)
 INSERT INTO operation (id_type, id_compte1, id_compte2, montant, date_track) VALUES
@@ -24,4 +24,4 @@ INSERT INTO operation (id_type, id_compte1, id_compte2, montant, date_track) VAL
 
 -- Cas C : Retraits d'argent (Conversion en cash chez un agent)
 INSERT INTO operation (id_type, id_compte1, id_compte2, montant, date_track) VALUES
-(1, 3, 5, 30000,  '2026-07-20');  -- Le Client C (3) retire 30 000 Ar de cash chez l'agent (5)
+(1, 3, null, 30000,  '2026-07-20');  -- Le Client C (3) retire 30 000 Ar de cash chez l'agent (5)

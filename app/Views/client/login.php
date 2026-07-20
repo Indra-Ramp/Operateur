@@ -145,7 +145,7 @@
 <div class="space-y-sm">
 <div class="flex justify-between items-center">
 <label class="font-label-md text-label-md text-outline uppercase tracking-wider block" for="phone">Phone Number</label>
-<span id="digitCounter" class="font-label-md text-label-md text-outline-variant">0/7</span>
+<span id="digitCounter" class="font-label-md text-label-md text-outline-variant">0/10</span>
 </div>
 <div class="flex h-12 w-full rounded-lg border border-outline-variant bg-surface-container-lowest overflow-hidden transition-all duration-200 input-focus-ring">
 <!-- Prefix Dropdown -->
@@ -157,10 +157,10 @@
 </select>
 <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
 </div>
-<!-- Number Input: seulement la suite (7 chiffres) qui vient après le préfixe -->
-<input class="flex-1 px-md border-none focus:ring-0 text-on-surface placeholder:text-outline-variant font-body-lg bg-transparent" name="phone" id="phone" placeholder="XXX XXXX" type="tel" inputmode="numeric" maxlength="7" value="<?= esc(old('phone') ?? '') ?>"/>
+<!-- Number Input: full 10-digit local number, prefix included -->
+<input class="flex-1 px-md border-none focus:ring-0 text-on-surface placeholder:text-outline-variant font-body-lg bg-transparent" name="phone" id="phone" placeholder="XX XXX XXXX" type="tel" inputmode="numeric" maxlength="10" value="<?= esc(old('phone') ?? '') ?>"/>
 </div>
-<p id="phoneHint" class="font-label-md text-label-md text-on-surface-variant">Sélectionnez votre préfixe (ex : 032), puis saisissez les 7 chiffres suivants. Préfixe + suite = 10 chiffres au total.</p>
+<p id="phoneHint" class="font-label-md text-label-md text-on-surface-variant">Saisissez votre numéro complet (préfixe inclus), 10 chiffres au total.</p>
 </div>
 <!-- Password Input
 <div class="space-y-sm">
@@ -225,23 +225,23 @@
             const counter = document.getElementById('digitCounter');
             const hint = document.getElementById('phoneHint');
 
-            const SUITE_LENGTH = 7;
-
             const updateCounter = () => {
-                const digits = phoneInput.value.replace(/\D/g, '').slice(0, SUITE_LENGTH);
+                const digits = phoneInput.value.replace(/\D/g, '');
                 phoneInput.value = digits;
-                counter.textContent = `${digits.length}/${SUITE_LENGTH}`;
+                counter.textContent = `${digits.length}/10`;
 
-                if (digits.length === SUITE_LENGTH) {
+                if (digits.length === 10) {
                     counter.classList.remove('text-outline-variant', 'text-error');
                     counter.classList.add('text-primary');
-                    hint.textContent = 'Numéro complet (préfixe + 7 chiffres = 10 chiffres).';
+                    hint.textContent = 'Numéro complet.';
                     hint.classList.remove('text-error');
                 } else {
                     counter.classList.remove('text-primary');
-                    counter.classList.add('text-outline-variant');
-                    hint.textContent = `Il manque ${SUITE_LENGTH - digits.length} chiffre(s) après le préfixe.`;
-                    hint.classList.remove('text-error');
+                    counter.classList.add(digits.length > 10 ? 'text-error' : 'text-outline-variant');
+                    hint.textContent = digits.length > 10
+                        ? `Trop de chiffres (${digits.length - 10} en trop).`
+                        : `Il manque ${10 - digits.length} chiffre(s).`;
+                    hint.classList.toggle('text-error', digits.length > 10);
                 }
             };
 

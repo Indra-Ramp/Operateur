@@ -3,24 +3,11 @@
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>MobileMoney - New Transaction</title>
+<title>MobileMoney | Client Dashboard</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .step-transition {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(229, 231, 235, 0.5);
-        }
-    </style>
 <script id="tailwind-config">
         tailwind.config = {
           darkMode: "class",
@@ -113,380 +100,312 @@
           },
         }
     </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .smoky-emerald-shadow {
+            box-shadow: 0 4px 6px -1px rgba(6, 78, 59, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+        }
+    </style>
 </head>
-<body class="bg-surface text-on-surface font-body-md min-h-screen">
+<body class="bg-surface font-body-md text-on-surface overflow-x-hidden">
 <!-- TopNavBar -->
 <header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding h-16 bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-primary font-bold text-headline-md" data-icon="account_balance_wallet">account_balance_wallet</span>
+<div class="flex items-center gap-md">
+<img alt="MobileMoney Logo" class="h-8 w-8 object-contain rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw-BYcdHzJowxiNj_aCC7g4NtB8HRtBtUMs9e57GU5sZwkYMVAuV6n19U3JGHbhHUl309LJWPsW87Gx_rt-oSRD26fRqxhJmreG3o2yOm2LUf2EiG7hEIg7ZjHlJYsC-1lBtw0Ltpo3hyuaf_iB65v3pJZVJMaU0SSfhEr4ly61WrX0-W3K3ed70wR1TGE_rt1AfYjWeWluntHIJs-hoDP8zGiAvXAZtEMqf2N2NCBTt1oMaQsGkinGcqjgzHbJzC1kRvriRjG3RU"/>
 <span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">MobileMoney</span>
 </div>
+<nav class="hidden md:flex gap-xl h-full">
+<a class="flex items-center h-full text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary transition-colors" href="/client/dashboard">Dashboard</a>
+<a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="/client/transactions">Transactions</a>
+<a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="#">Cards</a>
+<a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="#">Settings</a>
+</nav>
 <div class="flex items-center gap-md">
-<a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="/client/dashboard">Dashboard</a>
-<a class="text-primary font-label-md hover:underline" href="/client/logout">Logout</a>
+<button class="p-base rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<button class="p-base rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="help">help</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white font-bold text-xs">
+                <?= esc(strtoupper(substr($compte['tel'], -2))) ?>
+            </div>
+<a class="text-on-surface-variant font-medium text-body-md hover:text-primary transition-colors" href="/client/logout">Logout</a>
 </div>
 </header>
-<main class="pt-24 pb-12 px-container-padding max-w-4xl mx-auto">
-<!-- Dashboard Header Context -->
-<div class="mb-xl text-center md:text-left">
-<h1 class="font-display text-display text-on-background mb-base">Execute Transaction</h1>
-<p class="text-on-surface-variant font-body-lg">Move your money with enterprise-grade security.</p>
-</div>
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
-<!-- Left: Transaction Form -->
-<div class="lg:col-span-8">
-<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-lg md:p-xl">
-<form class="space-y-xl" id="transactionForm" action="/client/transfert" method="post">
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="rounded-lg border border-error text-error bg-error/10 px-md py-sm font-medium flex items-start gap-xs">
-        <span class="material-symbols-outlined text-base leading-none mt-[2px]">error</span>
-        <span><?= esc(session()->getFlashdata('error')) ?></span>
-    </div>
-<?php elseif (session()->getFlashdata('success')): ?>
-    <div class="rounded-lg border border-primary text-primary bg-primary/10 px-md py-sm font-medium flex items-start gap-xs">
-        <span class="material-symbols-outlined text-base leading-none mt-[2px]">check_circle</span>
-        <span><?= esc(session()->getFlashdata('success')) ?></span>
-    </div>
+<main class="pt-24 pb-12 px-container-padding max-w-7xl mx-auto">
+<?php if (session()->getFlashdata('success')): ?>
+<div class="mb-lg rounded-lg border border-primary text-primary bg-primary/10 px-md py-sm font-medium"><?= esc(session()->getFlashdata('success')) ?></div>
+<?php elseif (session()->getFlashdata('error')): ?>
+<div class="mb-lg rounded-lg border border-error text-error bg-error/10 px-md py-sm font-medium"><?= esc(session()->getFlashdata('error')) ?></div>
 <?php endif ?>
-<input type="hidden" name="operation_type" id="operationType" value="transfer">
-<!-- Step 1: Operation Type -->
-<div class="space-y-md">
-<label class="block font-headline-md text-on-surface">1. Select Operation</label>
-<div class="grid grid-cols-3 gap-md">
-<button class="flex flex-col items-center justify-center p-lg rounded-xl border-2 border-outline-variant hover:border-primary-container transition-all group" id="btn-transfer" onclick="setOperation('transfer')" type="button">
-<span class="material-symbols-outlined text-primary mb-sm text-[32px] group-hover:scale-110 transition-transform" data-icon="swap_horiz">swap_horiz</span>
-<span class="font-label-md">Transfer</span>
-</button>
-<button class="flex flex-col items-center justify-center p-lg rounded-xl border-2 border-outline-variant hover:border-primary-container transition-all group" id="btn-deposit" onclick="setOperation('deposit')" type="button">
-<span class="material-symbols-outlined text-primary mb-sm text-[32px] group-hover:scale-110 transition-transform" data-icon="account_balance_wallet">account_balance_wallet</span>
-<span class="font-label-md">Deposit</span>
-</button>
-<button class="flex flex-col items-center justify-center p-lg rounded-xl border-2 border-outline-variant hover:border-primary-container transition-all group" id="btn-withdrawal" onclick="setOperation('withdrawal')" type="button">
-<span class="material-symbols-outlined text-primary mb-sm text-[32px] group-hover:scale-110 transition-transform" data-icon="atm">atm</span>
-<span class="font-label-md">Retrait</span>
-</button>
+<!-- Welcome Header -->
+<div class="mb-lg">
+<h1 class="font-display text-display text-on-surface">Bienvenue, <?= esc($compte['tel']) ?></h1>
+<p class="text-on-surface-variant font-body-lg">Voici un aperçu de votre compte aujourd'hui.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
+<!-- Account Summary Card (Bento Row 1) -->
+<div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="bg-primary-container p-lg rounded-xl smoky-emerald-shadow flex flex-col justify-between text-white min-h-[220px] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+<div>
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-md text-label-md opacity-80 uppercase tracking-wider">Current Balance</p>
+<span class="material-symbols-outlined text-white/50" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<h2 class="font-display text-[42px] leading-tight font-bold"><?= number_format($soldeCompte, 2, ',', ' '); ?> <span class="text-xl font-normal">Ar</span></h2>
+</div>
+<div class="flex justify-between items-end border-t border-white/20 pt-md">
+<div>
+<p class="text-xs opacity-70">Numéro de compte</p>
+<p class="font-bold text-body-lg">#<?= esc($compte['id']) ?></p>
+</div>
+<div class="text-right">
+<p class="text-xs opacity-70">Phone Number</p>
+<p class="font-bold text-body-lg"><?= esc($compte['tel']) ?></p>
 </div>
 </div>
-<!-- Step 2: Recipient (Conditional) -->
-<div class="space-y-md hidden opacity-0 transition-opacity duration-300" id="recipientSection">
-<div class="flex justify-between items-center">
-<label class="block font-headline-md text-on-surface">2. Recipient Details</label>
-<label class="flex items-center gap-xs cursor-pointer select-none">
-    <input class="rounded border-outline-variant text-primary focus:ring-primary" id="multiToggle" type="checkbox"/>
-    <span class="font-label-md text-on-surface-variant">Envoi multiple</span>
-</label>
 </div>
+<!-- Action Cards -->
+<div class="grid grid-cols-2 gap-md">
+<a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="send">send</span>
+</div>
+<span class="font-bold text-on-surface">Transfer</span>
+</a>
+<a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+<div class="w-12 h-12 rounded-full bg-tertiary-container/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-tertiary" data-icon="add_card">add_card</span>
+</div>
+<span class="font-bold text-on-surface">Deposit</span>
+</a>
+<a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+<div class="w-12 h-12 rounded-full bg-error-container/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-error" data-icon="outbox">outbox</span>
+</div>
+<span class="font-bold text-on-surface">Withdraw</span>
+</a>
+<!-- <button class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="receipt_long">receipt_long</span>
+</div>
+<span class="font-bold text-on-surface">Bills</span>
+</button> -->
+</div> 
 
-<!-- Single recipient (default) -->
-<div id="singleRecipient">
-<div class="flex gap-sm">
-    <div class="relative group w-1/3">
-        <select class="h-12 w-full bg-surface-container-low px-md pr-sm border border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none rounded-lg" name="prefixe">
-            <?php foreach ($prefixes as $p): ?>
-                <option value="<?= esc($p['label']) ?>">+<?= esc($p['label']) ?></option>
-            <?php endforeach ?>
-        </select>
-        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
-    </div>
-    <div class="relative flex-1">
-        <div class="absolute inset-y-0 left-0 flex items-center pl-md pointer-events-none">
-            <span class="material-symbols-outlined text-outline" data-icon="phone_iphone">phone_iphone</span>
-        </div>
-        <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none" name="phone" id="destPhone" placeholder="0000000" type="tel" inputmode="numeric" maxlength="7" />
-    </div>
 </div>
-<p class="font-label-md text-on-surface-variant flex items-center gap-xs">
-<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
-Sélectionnez le préfixe puis saisissez les 7 chiffres suivants du destinataire (10 chiffres au total, pas 10 après le préfixe).
-</p>
-</div>
-
-<!-- Multiple recipients -->
-<div class="hidden space-y-sm" id="multiRecipients">
-<div class="space-y-sm" id="multiRows"></div>
-<button class="flex items-center gap-xs px-md py-sm rounded-lg border border-dashed border-outline-variant text-primary hover:bg-primary-container/20 transition-colors font-label-md" id="addRecipientBtn" type="button">
-<span class="material-symbols-outlined text-[18px]">add</span>
-Ajouter un destinataire
-</button>
-<p class="font-label-md text-on-surface-variant flex items-center gap-xs">
-<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
-Le montant total saisi ci-dessous sera divisé équitablement entre tous les destinataires.
-</p>
-</div>
-</div>
-<!-- Step 3: Amount -->
-<div class="space-y-md" id="amountSection">
-<label class="block font-headline-md text-on-surface" id="amountLabel">2. Transaction Amount</label>
-<div class="relative flex items-center">
-<div class="flex items-center justify-center px-lg h-full bg-surface-container-high border border-outline-variant border-r-0 rounded-l-lg font-label-md text-on-surface-variant">
-                                    Ar
-                                </div>
-<input class="w-full px-md py-md bg-surface-container-low border border-outline-variant rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none font-label-md text-lg" name="montant" id="montantInput" placeholder="0" type="number" min="1" step="1"/>
-</div>
-<div class="flex flex-wrap gap-sm">
-<button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="5000">5 000 Ar</button>
-<button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="20000">20 000 Ar</button>
-<button class="quick-amount px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button" data-amount="50000">50 000 Ar</button>
-<button id="btn-max" class="px-md py-sm bg-surface-container-high rounded-full font-label-md text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container transition-colors" type="button">Max</button>
-</div>
-<label class="flex items-start gap-sm pt-sm hidden" id="fraisOptionWrapper">
-<input class="mt-[3px] rounded border-outline-variant text-primary focus:ring-primary" id="inclureFrais" name="inclure_frais" type="checkbox" value="1"/>
-<span class="font-label-md text-on-surface-variant">
-Inclure les frais de retrait dans le montant envoyé <span class="text-on-surface-variant/70">(le destinataire reçoit alors le montant saisi moins les frais, au lieu de payer le montant + frais en plus)</span>
-</span>
-</label>
-</div>
-<!-- Action -->
-<div class="pt-lg border-t border-outline-variant">
-<button class="w-full bg-primary hover:bg-on-primary-container text-white py-lg rounded-xl font-headline-md shadow-md hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-sm" type="submit">
-                                Confirm Transaction
-                                <span class="material-symbols-outlined" data-icon="lock">lock</span>
-</button>
-<p class="mt-md text-center text-on-surface-variant font-label-md">
-                                Vérifiez les informations avant de valider
-                            </p>
-</div>
-</form>
-</div>
-</div>
-<!-- Right: Info & Summary Panel -->
-<div class="lg:col-span-4 space-y-lg">
-<!-- Balance Card -->
-<div class="bg-primary text-on-primary p-lg rounded-xl shadow-md relative overflow-hidden">
-<div class="relative z-10">
-<p class="font-label-md opacity-80 mb-xs">Solde disponible</p>
-<h2 class="font-display text-display"><?= number_format($soldeCompte, 0, ',', ' ') ?> <span class="text-xl font-normal">Ar</span></h2>
-<div class="mt-lg flex items-center gap-xs">
-<span class="material-symbols-outlined text-sm" data-icon="phone_iphone">phone_iphone</span>
-<span class="font-label-md text-primary-fixed-dim"><?= esc($compte['tel'] ?? '') ?></span>
-</div>
-</div>
-<!-- Decorative pattern -->
-<div class="absolute -right-4 -bottom-4 opacity-10">
-<span class="material-symbols-outlined text-[120px]" data-icon="account_balance">account_balance</span>
-</div>
-</div>
-<!-- Recent Activity Bento -->
-<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
-<div class="flex justify-between items-center mb-md">
-<h3 class="font-headline-md text-on-surface">Recent</h3>
-<a class="text-primary font-label-md hover:underline" href="/client/dashboard">View All</a>
-</div>
+<!-- Quick Stats / Promotions (Bento Sidebar) -->
+<!-- <div class="lg:col-span-4 bg-surface-container-low p-lg rounded-xl border border-outline-variant min-h-[220px]">
+<h3 class="font-headline-md text-headline-md mb-md">Insights</h3>
 <div class="space-y-md">
-<?php if (! empty($recentes)): ?>
-    <?php $idCompte = (int) ($compte['id'] ?? 0); ?>
-    <?php foreach ($recentes as $op): ?>
+<div class="flex items-center justify-between p-sm bg-surface-container-lowest rounded-lg border border-outline-variant/30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="trending_up">trending_up</span>
+<span class="font-medium">Total Savings</span>
+</div>
+<span class="font-bold text-primary">+12.5%</span>
+</div>
+<div class="flex items-center justify-between p-sm bg-surface-container-lowest rounded-lg border border-outline-variant/30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="history_edu">history_edu</span>
+<span class="font-medium">Pending Approvals</span>
+</div>
+<span class="font-bold text-on-surface-variant">2</span>
+</div>
+</div>
+<div class="mt-lg p-md bg-tertiary-fixed rounded-xl border border-tertiary/20 flex flex-col gap-sm">
+<p class="font-bold text-on-tertiary-fixed-variant">Earn 5% Cashback</p>
+<p class="text-xs text-on-tertiary-fixed opacity-80 leading-relaxed">Refer a friend today and get an instant reward in your wallet.</p>
+<button class="mt-sm bg-tertiary text-white py-sm px-md rounded-lg font-bold text-sm hover:brightness-110 transition-all">Invite Friend</button>
+</div>
+</div> -->
+<!-- Transaction History Table -->
+<div class="lg:col-span-12 mt-lg bg-surface-container-lowest p-lg rounded-xl border border-outline-variant smoky-emerald-shadow overflow-hidden">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-lg">
+<h3 class="font-headline-md text-headline-md">Transaction History</h3>
+<div class="flex flex-wrap items-center gap-sm">
+<!-- Date Range Filter -->
+<div class="relative">
+<input class="bg-surface border border-outline-variant rounded-lg px-md py-sm text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none" type="date"/>
+</div>
+<!-- Operation Type Dropdown -->
+<div class="relative">
+<select class="bg-surface border border-outline-variant rounded-lg pl-md pr-xl py-sm text-sm appearance-none focus:ring-2 focus:ring-primary focus:border-primary outline-none cursor-pointer">
+<option value="">All Operations</option>
+<option value="Transfer">Transfer</option>
+<option value="Deposit">Deposit</option>
+<option value="Withdrawal">Withdrawal</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+<button class="bg-primary text-white px-md py-sm rounded-lg font-bold text-sm flex items-center gap-xs hover:scale-95 duration-150">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                            Export
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low">
+<tr>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Date</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Type</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Recipient / Sender</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Amount</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Status</th>
+<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<?php if (! empty($operations)): ?>
+    <?php $idCompte = (int) $compte['id']; ?>
+    <?php foreach ($operations as $operation): ?>
         <?php
-            $isOutgoing = ((int) $op['id_compte1'] === $idCompte);
-            $credit = ($op['type_label'] === 'depot') || ($op['type_label'] === 'transfert' && ! $isOutgoing);
-            $label = match ($op['type_label']) {
-                'depot'     => 'Dépôt',
-                'retrait'   => 'Retrait',
-                'transfert' => $isOutgoing ? 'Vers ' . esc($op['tel_compte2'] ?? 'N/A') : 'De ' . esc($op['tel_compte1'] ?? 'N/A'),
-                default     => esc($op['type_label']),
-            };
+            $type = $operation['type_label'] ?? '';
+            $isOutgoing = ((int) $operation['id_compte1'] === $idCompte);
+            $amount = number_format($operation['montant'], 0, ',', ' ');
+
+            switch ($type) {
+                case 'depot':
+                    $icon = 'add_card';
+                    $participant = 'Dépôt sur votre compte';
+                    $credit = true;
+                    break;
+                case 'retrait':
+                    $icon = 'outbox';
+                    $participant = 'Retrait (agent)';
+                    $credit = false;
+                    break;
+                case 'transfert':
+                    $icon = $isOutgoing ? 'arrow_outward' : 'arrow_downward';
+                    $participant = $isOutgoing
+                        ? 'Vers ' . esc($operation['tel_compte2'] ?? 'N/A')
+                        : 'De ' . esc($operation['tel_compte1'] ?? 'N/A');
+                    $credit = ! $isOutgoing;
+                    break;
+                default:
+                    $icon = 'swap_horiz';
+                    $participant = 'N/A';
+                    $credit = ! $isOutgoing;
+            }
+
+            $amountLabel = ($credit ? '+ ' : '- ') . $amount . ' Ar';
+            $statusClass = $credit ? 'bg-primary/10 text-primary' : 'bg-error-container text-error';
+            $statusText  = $credit ? 'Crédit' : 'Débit';
         ?>
-        <div class="flex items-center gap-md p-sm hover:bg-surface-container-low rounded-lg transition-colors">
-            <div class="h-10 w-10 rounded-full <?= $credit ? 'bg-primary-container' : 'bg-secondary-container' ?> flex items-center justify-center">
-                <span class="material-symbols-outlined <?= $credit ? 'text-on-primary-container' : 'text-on-secondary-container' ?>" data-icon="<?= $credit ? 'arrow_downward' : 'arrow_outward' ?>"><?= $credit ? 'arrow_downward' : 'arrow_outward' ?></span>
-            </div>
-            <div class="flex-1">
-                <p class="font-body-md text-on-surface font-semibold"><?= $label ?></p>
-                <p class="text-xs text-on-surface-variant"><?= esc($op['date_track']) ?></p>
-            </div>
-            <p class="font-label-md <?= $credit ? 'text-primary' : 'text-on-surface' ?>"><?= $credit ? '+' : '-' ?> <?= number_format($op['montant'], 0, ',', ' ') ?> Ar</p>
-        </div>
+        <tr class="hover:bg-surface-container-low transition-colors">
+            <td class="px-md py-md text-body-md whitespace-nowrap"><?= esc($operation['date_track']); ?></td>
+            <td class="px-md py-md text-body-md">
+                <span class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary" data-icon="<?= $icon ?>"><?= $icon ?></span>
+                    <?= esc(ucfirst($type)) ?>
+                </span>
+            </td>
+            <td class="px-md py-md text-body-md"><?= $participant ?></td>
+            <td class="px-md py-md font-bold <?= $credit ? 'text-primary' : 'text-on-surface' ?>"><?= $amountLabel ?></td>
+            <td class="px-md py-md">
+                <span class="<?= $statusClass ?> px-sm py-1 rounded-full text-xs font-bold uppercase"><?= $statusText ?></span>
+            </td>
+            <td class="px-md py-md text-right">
+                <button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+            </td>
+        </tr>
     <?php endforeach; ?>
 <?php else: ?>
-    <p class="text-sm text-on-surface-variant">Aucune opération récente.</p>
+    <tr>
+        <td class="px-md py-md text-body-md text-on-surface-variant" colspan="6">Aucune opération trouvée pour ce compte.</td>
+    </tr>
+<?php endif; ?>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<?php if ($totalOperations > 0): ?>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mt-lg pt-md border-t border-outline-variant">
+<?php
+    $firstItem = ($currentPage - 1) * $perPage + 1;
+    $lastItem  = min($totalOperations, $currentPage * $perPage);
+?>
+<p class="text-sm text-on-surface-variant">Affichage de <span class="font-bold"><?= $firstItem ?>-<?= $lastItem ?></span> sur <span class="font-bold"><?= $totalOperations ?></span> transactions</p>
+<div class="flex items-center gap-sm">
+<?php if ($currentPage > 1): ?>
+<a href="?page=<?= $currentPage - 1 ?>" class="p-sm rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</a>
+<?php else: ?>
+<span class="p-sm rounded-lg border border-outline-variant opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_left">chevron_left</span>
+</span>
+<?php endif; ?>
+<div class="flex items-center gap-1">
+<?php
+    // Build a compact page list: always show first, last, current and its
+    // neighbours, and collapse the rest behind an ellipsis.
+    $pagesToShow = [];
+    for ($p = 1; $p <= $totalPages; $p++) {
+        if ($p === 1 || $p === $totalPages || abs($p - $currentPage) <= 1) {
+            $pagesToShow[] = $p;
+        }
+    }
+?>
+<?php $previousPage = 0; ?>
+<?php foreach ($pagesToShow as $p): ?>
+    <?php if ($p - $previousPage > 1): ?>
+        <span class="px-sm text-on-surface-variant">...</span>
+    <?php endif; ?>
+    <?php if ($p === $currentPage): ?>
+        <span class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold text-sm shadow-md"><?= $p ?></span>
+    <?php else: ?>
+        <a href="?page=<?= $p ?>" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high font-bold text-sm transition-colors"><?= $p ?></a>
+    <?php endif; ?>
+    <?php $previousPage = $p; ?>
+<?php endforeach; ?>
+</div>
+<?php if ($currentPage < $totalPages): ?>
+<a href="?page=<?= $currentPage + 1 ?>" class="p-sm rounded-lg border border-outline-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</a>
+<?php else: ?>
+<span class="p-sm rounded-lg border border-outline-variant opacity-50">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</span>
 <?php endif; ?>
 </div>
 </div>
-<!-- Security Tip Card -->
-<div class="bg-tertiary-container text-on-tertiary-container p-lg rounded-xl border border-tertiary">
-<div class="flex items-start gap-md">
-<span class="material-symbols-outlined mt-base" data-icon="verified_user">verified_user</span>
-<div>
-<h4 class="font-headline-md mb-xs">Security Check</h4>
-<p class="text-sm opacity-90">Always verify the recipient's phone number before confirming. MobileMoney will never ask for your PIN via SMS.</p>
-</div>
-</div>
-</div>
+<?php endif; ?>
 </div>
 </div>
 </main>
+<!-- Floating Action Button (Only on Mobile-ish context) -->
+<a href="/client/transactions" class="fixed bottom-lg right-lg bg-primary text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all lg:hidden">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</a>
 <script>
-        const soldeDisponible = <?= (float) $soldeCompte ?>;
-        const SUITE_LENGTH = 7; // longueur de la suite après le préfixe (préfixe 3 + suite 7 = 10)
-        // Options du select préfixe, générées côté serveur, réutilisées pour
-        // chaque ligne destinataire ajoutée dynamiquement en mode multiple.
-        const prefixOptionsHtml = `<?= implode('', array_map(
-            fn ($p) => '<option value="' . esc($p['label'], 'attr') . '">+' . esc($p['label']) . '</option>',
-            $prefixes
-        )) ?>`;
-
-        let currentOperation = 'transfer';
-
-        function setOperation(type) {
-            currentOperation = type;
-            
-            // UI Updates for buttons
-            const buttons = ['transfer', 'deposit', 'withdrawal'];
-            buttons.forEach(btn => {
-                const el = document.getElementById(`btn-${btn}`);
-                if (btn === type) {
-                    el.classList.add('border-primary', 'bg-primary-container', 'text-on-primary-container');
-                    el.classList.remove('border-outline-variant');
-                } else {
-                    el.classList.remove('border-primary', 'bg-primary-container', 'text-on-primary-container');
-                    el.classList.add('border-outline-variant');
-                }
-            });
-
-            // Handle step conditional visibility
-            const recipientSection = document.getElementById('recipientSection');
-            const destPhone = document.getElementById('destPhone');
-            const amountLabel = document.getElementById('amountLabel');
-            const form = document.getElementById('transactionForm');
-            const operationType = document.getElementById('operationType');
-            const fraisOptionWrapper = document.getElementById('fraisOptionWrapper');
-            const multiToggle = document.getElementById('multiToggle');
-
-            if (type === 'transfer') {
-                recipientSection.classList.remove('hidden');
-                setTimeout(() => recipientSection.classList.remove('opacity-0'), 10);
-                destPhone.required = ! multiToggle.checked;
-                amountLabel.innerText = multiToggle.checked ? '3. Montant total à répartir' : '3. Transaction Amount';
-                form.action = multiToggle.checked ? '/client/transfert-multiple' : '/client/transfert';
-                operationType.value = 'transfer';
-                fraisOptionWrapper.classList.remove('hidden');
-            } else if (type === 'deposit') {
-                recipientSection.classList.add('opacity-0');
-                setTimeout(() => recipientSection.classList.add('hidden'), 300);
-                destPhone.required = false;
-                amountLabel.innerText = '2. Transaction Amount';
-                form.action = '/client/depot';
-                operationType.value = 'depot';
-                fraisOptionWrapper.classList.add('hidden');
-            } else {
-                recipientSection.classList.add('opacity-0');
-                setTimeout(() => recipientSection.classList.add('hidden'), 300);
-                destPhone.required = false;
-                amountLabel.innerText = '2. Transaction Amount';
-                form.action = '/client/retrait';
-                operationType.value = 'retrait';
-                fraisOptionWrapper.classList.add('hidden');
-            }
-        }
-
-        // --- Envoi multiple : gestion des lignes destinataires ---
-
-        function buildRecipientRow() {
-            const row = document.createElement('div');
-            row.className = 'flex gap-sm items-center recipient-row';
-            row.innerHTML = `
-                <div class="relative group w-1/3">
-                    <select class="h-12 w-full bg-surface-container-low px-md pr-sm border border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none rounded-lg" name="prefixe[]">
-                        ${prefixOptionsHtml}
-                    </select>
-                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
-                </div>
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-md pointer-events-none">
-                        <span class="material-symbols-outlined text-outline">phone_iphone</span>
-                    </div>
-                    <input class="w-full pl-xl pr-md py-md bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none recipient-phone" name="phone[]" placeholder="0000000" type="tel" inputmode="numeric" maxlength="${SUITE_LENGTH}"/>
-                </div>
-                <button type="button" class="removeRecipientBtn p-sm text-error hover:bg-error/10 rounded-lg transition-colors" title="Retirer ce destinataire">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            `;
-
-            row.querySelector('.recipient-phone').addEventListener('input', function () {
-                this.value = this.value.replace(/\D/g, '').slice(0, SUITE_LENGTH);
-            });
-
-            row.querySelector('.removeRecipientBtn').addEventListener('click', () => {
-                const rows = document.querySelectorAll('#multiRows .recipient-row');
-                // On garde toujours au moins deux destinataires pour un envoi multiple.
-                if (rows.length > 2) {
-                    row.remove();
-                }
-            });
-
-            return row;
-        }
-
-        function addRecipientRow() {
-            document.getElementById('multiRows').appendChild(buildRecipientRow());
-        }
-
-        document.getElementById('addRecipientBtn').addEventListener('click', addRecipientRow);
-
-        document.getElementById('multiToggle').addEventListener('change', function () {
-            const singleRecipient = document.getElementById('singleRecipient');
-            const multiRecipients = document.getElementById('multiRecipients');
-            const destPhone = document.getElementById('destPhone');
-            const destPrefixe = singleRecipient.querySelector('select[name="prefixe"]');
-            const multiRows = document.getElementById('multiRows');
-
-            if (this.checked) {
-                singleRecipient.classList.add('hidden');
-                multiRecipients.classList.remove('hidden');
-                destPhone.required = false;
-                // On désactive les champs du mode simple pour qu'ils ne soient
-                // pas envoyés en même temps que prefixe[]/phone[] (sinon les
-                // deux jeux de champs entreraient en conflit côté serveur).
-                destPhone.disabled = true;
-                destPrefixe.disabled = true;
-
-                if (multiRows.children.length === 0) {
-                    addRecipientRow();
-                    addRecipientRow();
-                }
-
-                multiRows.querySelectorAll('select, input').forEach(el => { el.disabled = false; });
-            } else {
-                singleRecipient.classList.remove('hidden');
-                multiRecipients.classList.add('hidden');
-                destPhone.required = (currentOperation === 'transfer');
-                destPhone.disabled = false;
-                destPrefixe.disabled = false;
-
-                multiRows.querySelectorAll('select, input').forEach(el => { el.disabled = true; });
-            }
-
-            // Réapplique le libellé montant + l'action du formulaire pour l'état courant.
-            if (currentOperation === 'transfer') {
-                setOperation('transfer');
-            }
-        });
-
-        // Initialize default state
-        setOperation('transfer');
-
-        // Quick-amount shortcuts.
-        document.querySelectorAll('.quick-amount').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.getElementById('montantInput').value = btn.dataset.amount;
+        // Simple micro-interactions for the filter dropdowns and interactive elements
+        document.querySelectorAll('select, input[type="date"]').forEach(el => {
+            el.addEventListener('change', () => {
+                console.log('Filtering logic would execute here...');
+                // Visual feedback only for demo
+                const tbody = document.querySelector('tbody');
+                tbody.style.opacity = '0.5';
+                setTimeout(() => {
+                    tbody.style.opacity = '1';
+                }, 300);
             });
         });
-        document.getElementById('btn-max').addEventListener('click', () => {
-            document.getElementById('montantInput').value = Math.max(0, Math.floor(soldeDisponible));
-        });
-
-        // Chiffres uniquement, 7 chiffres pour la suite (le préfixe est choisi
-        // séparément dans le select ; préfixe + suite = 10 chiffres au total,
-        // jamais 10 chiffres après le préfixe).
-        document.getElementById('destPhone').addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, SUITE_LENGTH);
-        });
-
-        // NOTE: the form submits normally to the server (depot/retrait/transfert
-        // controllers), which validates the amount/solde and redirects back to
-        // the dashboard with a flash message. There is no client-side fake
-        // "success" animation here anymore: the previous version called
-        // e.preventDefault() and only ever showed a fake success state without
-        // ever sending the transaction to the server.
     </script>
 </body></html>

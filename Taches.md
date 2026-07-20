@@ -49,3 +49,12 @@
 - Faire les depots, retraits, transfert (automatique)
 - voir solde (reste de l'argent dans le compte)
 - Affichage de l'historique du compte
+
+# Operateur - V2
+## ETU004086
+
+## ETU004045
+- Creation table operateurs (id, label)
+- modification table prefixe: ajout de colonne id_operateur (NULL raha ohatra ka le operateur-nay ihany)
+- Creation table commission (id, id_operateur, perc)
+- 
