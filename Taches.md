@@ -43,3 +43,9 @@
     - AuthController.php
     - CompteController.php
     - OperationController.php
+
+- login client:
+    
+- Faire les depots, retraits, transfert (automatique)
+- voir solde (reste de l'argent dans le compte)
+- Affichage de l'historique du compte

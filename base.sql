@@ -38,6 +38,14 @@ CREATE TABLE operation(
 );
 
 CREATE INDEX idx_tel ON compte(tel);
+INSERT INTO prefixe('label') VALUES
+('032'),
+('033'),
+('034'),
+('035'),
+('036'),
+('037'),
+('038');
 
 INSERT INTO type_operation (label) VALUES
 ('retrait'), ('transfert'), ('depot');
