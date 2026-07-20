@@ -8,6 +8,7 @@
         protected $table = 'prefixe';
         protected $primaryKey = 'id';
         protected $allowedFields = ['label'];
+
     }
 
 ?>
