@@ -49,3 +49,8 @@
 - Faire les depots, retraits, transfert (automatique)
 - voir solde (reste de l'argent dans le compte)
 - Affichage de l'historique du compte
+
+# Operateur - V2
+## ETU004086
+
+## ETU004045
