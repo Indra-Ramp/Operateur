@@ -22,9 +22,8 @@ class AuthController extends BaseController
         ]);
     }
 
-    public function dashboard()
-    {
-        if ($this->request->getMethod() === 'post') {
+    public function dashboard(){
+        if ($this->request->getPost()) {
             $loginResult = $this->attemptLogin();
 
             if ($loginResult !== true) {
@@ -61,16 +60,14 @@ class AuthController extends BaseController
         ]);
     }
 
-    public function logout()
-    {
+    public function logout(){
         session()->remove('compte');
         session()->destroy();
 
         return redirect()->to('/client/login');
     }
 
-    private function attemptLogin()
-    {
+    private function attemptLogin(){
         $prefixe = $this->request->getPost('prefixe');
         $phone   = $this->request->getPost('phone');
 
@@ -96,6 +93,8 @@ class AuthController extends BaseController
 
             $compte = $compteModel->find($compteId);
         }
+
+        $compte = $compteModel->find($compte['id']);
 
         session()->set('compte', [
             'id'  => $compte['id'],

@@ -105,22 +105,18 @@ class OperationModel extends Model
             return ['success' => false, 'message' => 'Données invalides.'];
         }
 
-        // Récupération de la tranche pour le retrait (id_type = 1)
         $tranche = $this->db->table('tranche')
             ->where('id_type', 1)
             ->where('montant1 <=', $montant)
             ->where('montant2 >=', $montant)
             ->get()->getRowArray();
 
-        // Stockage temporaire du frais
         $fraisTemporaires = (float)($tranche['frais'] ?? 0);
 
-        // Vérification : le solde doit être supérieur ou égal à (montant + frais)
         if (($montant + $fraisTemporaires) > $this->getSolde($compteId)) {
             return ['success' => false, 'message' => 'Solde insuffisant pour ce retrait.'];
         }
 
-        // Enregistrement de l'opération
         $saved = $this->insert([
             'id_type'    => 1,
             'id_compte1' => $compteId,
@@ -138,25 +134,78 @@ class OperationModel extends Model
 
     public function transfert($compte1Id, $compte2Id, $montant, $inclureFrais = false)
     {
-        if ($compte1Id <= 0 || $compte2Id <= 0 || $compte1Id === $compte2Id || $montant <= 0) return ['success' => false, 'message' => 'Données invalides.'];
-        
-        $typeTransfert = $this->getTypeId(self::TYPE_TRANSFERT);
-        $frais = $this->getFrais($montant, $typeTransfert);
-        
-        $montantEnvoye = $inclureFrais ? $montant - $frais : $montant;
-        $total = $inclureFrais ? $montant : $montant + $frais;
-
-        if ($montantEnvoye <= 0 || $total > $this->getSolde($compte1Id)) return ['success' => false, 'message' => 'Solde insuffisant.'];
-
-        $this->db->transStart();
-        $this->insOp($typeTransfert, $compte1Id, $montantEnvoye, $compte2Id);
-        if ($frais > 0) {
-            $fraisTemporaires = $frais;
-            $this->db->table('operateur')->where('id', 1)->set('solde', 'solde - ' . $fraisTemporaires, false)->update();
+        if ($compte1Id <= 0 || $compte2Id <= 0 || $compte1Id === $compte2Id || $montant <= 0) {
+            return ['success' => false, 'message' => 'Données invalides.'];
         }
+
+        $compteModel = new CompteModel();
+        $c1 = $compteModel->find($compte1Id);
+        $c2 = $compteModel->find($compte2Id);
+
+        if (!$c2) {
+            $compte2Id = $compteModel->insert(['tel' => $c2['tel']]);
+            if (!$compte2Id) {
+                return ['success' => false, 'message' => 'Comptes introuvables.'];
+            }
+            $c2 = $compteModel->find($compte2Id);
+        }
+
+        $prefixe1 = substr((string)$c1['tel'], 0, 3);
+        $prefixe2 = substr((string)$c2['tel'], 0, 3);
+
+        // Stockage temporaire de la commission (1% si opérateurs différents)
+        $commissionTemporaire = 0.0;
+        if ($prefixe1 !== $prefixe2) {
+            $commissionTemporaire = $montant * 0.01; // 1% du montant
+        }
+
+        $tranche = $this->db->table('tranche')
+            ->where('id_type', 2)
+            ->where('montant1 <=', $montant)
+            ->where('montant2 >=', $montant)
+            ->get()->getRowArray();
+
+        $fraisTemporaires = (float)($tranche['frais'] ?? 0);
+
+        // Ajustement selon l'option d'inclusion des frais
+        $montantEnvoye = $inclureFrais ? $montant - $fraisTemporaires : $montant;
+        $totalDebit    = $inclureFrais ? $montant : $montant + $fraisTemporaires;
+
+        if ($montantEnvoye <= 0 || $totalDebit > $this->getSolde($compte1Id)) {
+            return ['success' => false, 'message' => 'Solde insuffisant pour ce transfert.'];
+        }
+
+        // 3. Exécution des transactions
+        $this->db->transStart();
+
+        // Le compte 1 fait un RETRAIT (id_type = 1) avec frais et commission
+        $this->insert([
+            'id_type'    => 1,
+            'id_compte1' => $compte1Id,
+            'id_compte2' => $compte2Id, // non null, référence le destinataire
+            'montant'    => $montant,
+            'frais'      => $fraisTemporaires,
+            'commission' => $commissionTemporaire,
+            'date_track' => date('Y-m-d')
+        ]);
+
+        // Le compte 2 reçoit un DÉPÔT (id_type = 3) du montant net envoyé
+        $this->insert([
+            'id_type'    => 3,
+            'id_compte1' => $compte2Id,
+            'id_compte2' => $compte1Id,
+            'montant'    => $montantEnvoye,
+            'frais'      => 0,
+            'commission' => 0,
+            'date_track' => date('Y-m-d')
+        ]);
+
         $this->db->transComplete();
 
-        return ['success' => $this->db->transStatus(), 'message' => 'Transfert réussi.'];
+        return [
+            'success' => $this->db->transStatus(),
+            'message' => $this->db->transStatus() ? 'Transfert effectué.' : 'Échec du transfert.'
+        ];
     }
 
     public function transfertMultiple($compte1Id, $destinataireIds, $montantTotal, $inclureFrais = false)
