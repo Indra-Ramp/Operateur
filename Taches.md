@@ -64,4 +64,5 @@
 - Creation table operateurs (id, label)
 - modification table prefixe: ajout de colonne id_operateur (NULL raha ohatra ka le operateur-nay ihany)
 - Creation table commission (id, id_operateur, perc)
-- Creation de fonction isNotOurOperator dans OperationModel
+- ajout de frais, commission, id_operateur dans la table operation
+- Creation de fonction stat dans FraisController.php

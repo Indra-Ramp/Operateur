@@ -52,6 +52,17 @@
     </a>
 </div>
 
+<div class="flex justify-end gap-2 mb-4">
+    <a href="<?= base_url('operateur/stats?id_type=1') ?>" 
+       class="px-3 py-1.5 text-xs font-semibold rounded-lg border <?= $op === '1' ? 'bg-gray-950 text-white border-gray-950' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' ?>">
+        Retrait
+    </a>
+    <a href="<?= base_url('operateur/stats?id_type=2') ?>" 
+       class="px-3 py-1.5 text-xs font-semibold rounded-lg border <?= $op === '2' ? 'bg-gray-950 text-white border-gray-950' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' ?>">
+        Transfert
+    </a>
+</div>
+
 <!-- Navigation Temporelle Dynamique -->
 <div class="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
     <?php 

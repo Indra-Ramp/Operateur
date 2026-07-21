@@ -157,13 +157,7 @@
                 ?>
 
                 <!-- Lien Dashboard -->
-                <a class="<?= $baseClass ?> <?= ($activePage === 'dashboard') ? $activeClass : $inactiveClass ?>"
-                href="<?= base_url('/dashboard') ?>">
-                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' <?= ($activePage === 'dashboard') ? '1' : '0' ?>;">
-                        dashboard
-                    </span>
-                    <span class="font-label-md text-label-md">Dashboard</span>
-                </a>
+                
 
                 <!-- Lien Frais -->
                 <a class="<?= $baseClass ?> <?= ($activePage === 'frais') ? $activeClass : $inactiveClass ?>"
