@@ -321,7 +321,7 @@ Inclure les frais de retrait dans le montant envoyé <span class="text-on-surfac
         // Options du select préfixe, générées côté serveur, réutilisées pour
         // chaque ligne destinataire ajoutée dynamiquement en mode multiple.
         const prefixOptionsHtml = `<?= implode('', array_map(
-            fn ($p) => '<option value="' . esc($p['label'], 'attr') . '">+' . esc($p['label']) . '</option>',
+            fn ($p) => '<option value="' . esc($p['label'], 'attr') . '">' . esc($p['label']) . '</option>',
             $prefixes
         )) ?>`;
 

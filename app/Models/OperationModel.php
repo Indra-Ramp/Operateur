@@ -224,8 +224,7 @@ class OperationModel extends Model
         return ['success' => true, 'message' => 'Transfert effectué avec succès.'];
     }
 
-    public function transfertMultiple($compte1Id, $destinataireIds, $montantTotal, $inclureFrais = false)
-    {
+    public function transfertMultiple($compte1Id, $destinataireIds, $montantTotal, $inclureFrais = false){
         $destinataireIds = array_values(array_unique($destinataireIds));
         $nb = count($destinataireIds);
 
@@ -233,43 +232,107 @@ class OperationModel extends Model
             return ['success' => false, 'message' => 'Données ou destinataires invalides.'];
         }
 
-        $typeTransfert = $this->getTypeId(self::TYPE_TRANSFERT);
-        $base = intdiv((int)round($montantTotal), $nb);
-        $reste = (int)round($montantTotal) - ($base * $nb);
+        $compteModel = new CompteModel();
+        $c1 = $compteModel->find($compte1Id);
+        if (!$c1) {
+            return ['success' => false, 'message' => 'Compte émetteur introuvable.'];
+        }
+        $prefixe1 = substr((string)$c1['tel'], 0, 3);
 
-        if ($base <= 0) return ['success' => false, 'message' => 'Montant trop faible.'];
+        $montantTotalEntier = (int)round($montantTotal);
+        $base  = intdiv($montantTotalEntier, $nb);
+        $reste = $montantTotalEntier - ($base * $nb);
 
-        $totalDebit = 0;
-        $operations = [];
-        $fraisCumulesTemporaires = 0.0;
+        if ($base <= 0) {
+            return ['success' => false, 'message' => 'Montant total trop faible à répartir.'];
+        }
+
+        $globalDebitRequired = 0.0;
+        $operationsPayload   = [];
+        $dateTimeActuel      = date('Y-m-d H:i:s');
 
         foreach ($destinataireIds as $index => $destId) {
+            $c2 = $compteModel->find($destId);
+            if (!$c2) {
+                return ['success' => false, 'message' => 'Un des bénéficiaires est introuvable.'];
+            }
+
             $part = $base + ($index < $reste ? 1 : 0);
-            $frais = $this->getFrais($part, $typeTransfert);
             
-            $montantEnvoye = $inclureFrais ? $part - $frais : $part;
-            $debit = $inclureFrais ? $part : $part + $frais;
+            $prefixe2 = substr((string)$c2['tel'], 0, 3);
+            $commissionIndividuelle = ($prefixe1 !== $prefixe2) ? (0.1 * $part) : 0.0;
 
-            if ($montantEnvoye <= 0) return ['success' => false, 'message' => 'Frais trop élevés pour une des parts.'];
+            $tranche = $this->db->table('tranche')
+                ->where('id_type', 2)
+                ->where('montant1 <=', $part)
+                ->where('montant2 >=', $part)
+                ->get()
+                ->getRowArray();
 
-            $totalDebit += $debit;
-            $fraisCumulesTemporaires += $frais;
-            $operations[] = ['dest' => $destId, 'envoye' => $montantEnvoye];
+            $fraisIndividuels = (float)($tranche['frais'] ?? 0);
+
+            if ($inclureFrais) {
+                $montantEnvoye = $part - $fraisIndividuels;
+                $montantEnregistre1 = $montantEnvoye - $commissionIndividuelle;
+                $debitIndividuel = $part + $commissionIndividuelle;
+            } else {
+                $montantEnvoye = $part;
+                $montantEnregistre1 = $part;
+                $debitIndividuel = $part + $fraisIndividuels + $commissionIndividuelle;
+            }
+
+            if ($montantEnvoye <= 0 || $montantEnregistre1 <= 0) {
+                return ['success' => false, 'message' => 'Frais et commissions trop élevés pour l\'une des parts.'];
+            }
+
+            $globalDebitRequired += $debitIndividuel;
+
+            $operationsPayload[] = [
+                'dest_id'             => $destId,
+                'montant_enregistre1' => $montantEnregistre1,
+                'montant_envoye'      => $montantEnvoye,
+                'frais'               => $fraisIndividuels,
+                'commission'          => $commissionIndividuelle
+            ];
         }
 
-        if ($totalDebit > $this->getSolde($compte1Id)) return ['success' => false, 'message' => 'Solde insuffisant.'];
-
-        $this->db->transStart();
-        foreach ($operations as $op) {
-            $this->insOp($typeTransfert, $compte1Id, $op['envoye'], $op['dest']);
+        if ($globalDebitRequired > $this->getSolde($compte1Id)) {
+            return ['success' => false, 'message' => 'Solde insuffisant pour couvrir l\'ensemble des transferts, frais et commissions.'];
         }
-        if ($fraisCumulesTemporaires > 0) {
-            $this->db->table('operateur')->where('id', 1)->set('solde', 'solde - ' . $fraisCumulesTemporaires, false)->update();
-        }
-        $this->db->transComplete();
 
-        return ['success' => $this->db->transStatus(), 'message' => 'Envoi multiple réussi.'];
+        $this->db->transBegin();
+
+        foreach ($operationsPayload as $op) {
+            $this->db->table('operation')->insert([
+                'id_type'    => 2,
+                'id_compte1' => $compte1Id,
+                'id_compte2' => $op['dest_id'], 
+                'montant'    => $op['montant_enregistre1'],
+                'frais'      => $op['frais'],
+                'commission' => $op['commission'],
+                'date_track' => $dateTimeActuel
+            ]);
+
+            $this->db->table('operation')->insert([
+                'id_type'    => 3,
+                'id_compte1' => $op['dest_id'],
+                'id_compte2' => $compte1Id,
+                'montant'    => $op['montant_envoye'],
+                'frais'      => 0.0,
+                'commission' => 0.0,
+                'date_track' => $dateTimeActuel
+            ]);
+        }
+
+        if ($this->db->transStatus() === false) {
+            $this->db->transRollback();
+            return ['success' => false, 'message' => 'Échec de la transaction groupée en base de données.'];
+        }
+
+        $this->db->transCommit();
+        return ['success' => true, 'message' => 'Envoi multiple effectué avec succès.'];
     }
+
 
     public function getFraisForMontant($montant, int $typeId)
     {
