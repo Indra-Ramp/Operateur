@@ -122,6 +122,7 @@
             $weekOffsetParam = $this->request->getGet('week_offset');
             $monthOffsetParam = $this->request->getGet('month_offset');
             $isGlobalMode = ($weekOffsetParam === null && $monthOffsetParam === null);
+            $idType = $this->request->getGet('id_type');
 
             if (!$isGlobalMode) {
                 $currentDate = new \DateTime();
@@ -162,7 +163,7 @@
                 $endDate   = 'Aujourd\'hui';
             }
 
-            $globalStats = $operationModel->getStat($startDate, $endDate, $isGlobalMode);
+            $globalStats = $operationModel->getStat($startDate, $endDate, $isGlobalMode, $idType);
             
             $wFees = (float)($globalStats['withdrawalFees'] ?? 0);
             $wCount = (int)($globalStats['withdrawalCount'] ?? 0);
@@ -180,7 +181,7 @@
             $transactionCount = $wCount + $totalTransferCount;
             $averageFee = $transactionCount > 0 ? round($totalFees / $transactionCount) : 0;
             
-            $graphRows = $operationModel->getGraphStat($graphStartDate, $graphEndDate);
+            $graphRows = $operationModel->getGraphStat($graphStartDate, $graphEndDate, $idType);
             $indexedGraph = [];
             foreach ($graphRows as $row) {
                 $indexedGraph[$row['date_jour']] = $row;
@@ -204,6 +205,7 @@
             }
             
             $data = [
+                'op' => $idType,
                 'activePage'          => 'stats',
                 'isGlobalMode'        => $isGlobalMode,
                 'viewType'            => $viewType,

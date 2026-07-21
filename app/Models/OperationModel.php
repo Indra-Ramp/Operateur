@@ -362,7 +362,7 @@ class OperationModel extends Model
         return $tranche['frais'] ?? 0;
     }
 
-    public function getStat($startDate, $endDate, $isGlobalMode) {
+    public function getStat($startDate, $endDate, $isGlobalMode, $idType = null) {
         $db = \Config\Database::connect();
         $builder = $db->table('operation');
         $builder->select("
@@ -377,10 +377,13 @@ class OperationModel extends Model
             $builder->where('date_track >=', $startDate);
             $builder->where('date_track <=', $endDate);
         }
+        if($idType !== NULL) {
+            $builder->where('id_type', $idType);
+        }
         return $builder->get()->getRowArray();
     }
 
-    public function getGraphStat($graphStartDate, $graphEndDate) {
+    public function getGraphStat($graphStartDate, $graphEndDate, $idType = null) {
         $db = \Config\Database::connect();
         $graphBuilder = $db->table('operation');
         $graphBuilder->select("
@@ -392,6 +395,10 @@ class OperationModel extends Model
         $graphBuilder->where('date_track <=', $graphEndDate);
         $graphBuilder->groupBy('DATE(date_track)');
         
+        if($idType !== NULL) {
+            $graphBuilder->where('id_type', $idType);
+        }
+
         return $graphBuilder->get()->getResultArray();
     }
 
