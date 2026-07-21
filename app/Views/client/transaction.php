@@ -183,7 +183,7 @@
     <div class="relative group w-1/3">
         <select class="h-12 w-full bg-surface-container-low px-md pr-sm border border-outline-variant text-on-surface font-body-md focus:ring-0 focus:outline-none cursor-pointer appearance-none rounded-lg" name="prefixe">
             <?php foreach ($prefixes as $p): ?>
-                <option value="<?= esc($p['label']) ?>">+<?= esc($p['label']) ?></option>
+                <option value="<?= esc($p['label']) ?>"><?= esc($p['label']) ?></option>
             <?php endforeach ?>
         </select>
         <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>

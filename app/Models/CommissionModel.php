@@ -17,6 +17,10 @@
                 'less_than_equal_to' => 'Le pourcentage ne peut pas etre superieur a 1.'
             ]
         ];
+
+        public function getCommissionByOperateur($idOperateur) {
+            return $this->where('id_operateur', $idOperateur)->first();
+        }
     }
 
 ?>
