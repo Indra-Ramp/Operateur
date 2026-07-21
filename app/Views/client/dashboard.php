@@ -121,8 +121,8 @@
         <?php
             $type = $operation['type_label'] ?? '';
             $isOutgoing = ((int) $operation['id_compte1'] === $idCompte);
-            $amount = number_format($operation['montant'], 0, ',', ' ');
-
+            $amount = number_format(($operation['montant'] + ($operation['frais'] ?? 0) + ($operation['commission'] ?? 0)), 0, ',', ' ');
+        
             switch ($type) {
                 case 'depot':
                     $icon = 'add_card';
