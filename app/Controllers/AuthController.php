@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\CompteModel;
 use App\Models\OperationModel;
 use App\Models\PrefixeModel;
+use App\Models\MvtEpargneModel;
 
 class AuthController extends BaseController
 {
@@ -48,7 +49,7 @@ class AuthController extends BaseController
         $page = max(1, min($page, $totalPages));
 
         $operations = $operationModel->getHistorique($idCompte, $perPage, ($page - 1) * $perPage);
-
+        $mvtEpargne = new MvtEpargneModel();
         return view('client/dashboard', [
             'compte'           => $compteSession,
             'soldeCompte'      => $operationModel->getSolde($idCompte),
@@ -57,6 +58,7 @@ class AuthController extends BaseController
             'totalPages'       => $totalPages,
             'totalOperations'  => $totalOperations,
             'perPage'          => $perPage,
+            'epargne'          => $mvtEpargne->getEpargne(session()->get('compte')['id'])
         ]);
     }
 
@@ -99,6 +101,7 @@ class AuthController extends BaseController
         session()->set('compte', [
             'id'  => $compte['id'],
             'tel' => $compte['tel'],
+            'epargne' => $compte['epargne'] ?? 0
         ]);
 
         return true;

@@ -12,6 +12,8 @@ $routes->group('client', function($routes){
     $routes->get('dashboard', 'AuthController::dashboard');
     $routes->get('logout', 'AuthController::logout');
     $routes->get('transactions', 'OperationController::transactions');
+    $routes->get('epargne', 'CompteController::formEpargne');
+    $routes->post('epargne', 'CompteController::updateEpargne');
     $routes->post('depot', 'OperationController::depot');
     $routes->post('retrait', 'OperationController::retrait');
     $routes->post('transfert', 'OperationController::transfert');

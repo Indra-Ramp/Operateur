@@ -35,6 +35,27 @@
 </div>
 </div>
 </div>
+<div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-lg">
+<div class="bg-primary-container p-lg rounded-xl smoky-emerald-shadow flex flex-col justify-between text-white min-h-[220px] relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+<div>
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-md text-label-md opacity-80 uppercase tracking-wider">Current Epargne</p>
+<span class="material-symbols-outlined text-white/50" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<h2 class="font-display text-[42px] leading-tight font-bold"><?= number_format($epargne, 2, ',', ' '); ?> <span class="text-xl font-normal">Ar</span></h2>
+</div>
+<div class="flex justify-between items-end border-t border-white/20 pt-md">
+<div>
+<p class="text-xs opacity-70">Numéro de compte</p>
+<p class="font-bold text-body-lg">#<?= esc($compte['id']) ?></p>
+</div>
+<div class="text-right">
+<p class="text-xs opacity-70">Phone Number</p>
+<p class="font-bold text-body-lg"><?= esc($compte['tel']) ?></p>
+</div>
+</div>
+</div>
 <!-- Action Cards -->
 <div class="grid grid-cols-2 gap-md">
 <a href="/client/transactions" class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">

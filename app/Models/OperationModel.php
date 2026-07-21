@@ -5,12 +5,13 @@ namespace App\Models;
 use CodeIgniter\Model;
 use App\Models\CommissionModel;
 use App\Models\PrefixeModel;
+use App\Models\MvtEpargneModel;
 
 class OperationModel extends Model
 {
     protected $table         = 'operation';
     protected $primaryKey    = 'id';
-    protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track', 'frais', 'id_operateur', 'commission'];
+    protected $allowedFields = ['id_type', 'id_compte1', 'id_compte2', 'montant', 'date_track', 'frais', 'id_operateur', 'commission', 'to_epargne'];
 
     public const TYPE_RETRAIT   = 'retrait';
     public const TYPE_TRANSFERT = 'transfert';
@@ -39,7 +40,7 @@ class OperationModel extends Model
             ->get()->getRow()->montant ?? 0;
 
         $sorties = $this->db->table('operation o')
-            ->select('SUM(COALESCE(o.montant, 0)) + SUM(COALESCE(o.frais, 0) + COALESCE(o.commission, 0)) as total_sorties')
+            ->select('SUM(COALESCE(o.montant, 0)) + SUM(COALESCE(o.frais, 0) + COALESCE(o.commission, 0) + COALESCE(o.to_epargne, 0)) as total_sorties')
             ->join('type_operation t', 't.id = o.id_type')
             ->whereIn('t.label', [self::TYPE_RETRAIT, self::TYPE_TRANSFERT])
             ->where('o.id_compte1', $idCompte)
@@ -144,6 +145,7 @@ class OperationModel extends Model
         if ($compte1Id <= 0 || $compte2Id <= 0 || $compte1Id === $compte2Id || $montant <= 0) {
             return ['success' => false, 'message' => 'Données invalides.'];
         }
+        $toEpargne = 0;
 
         $compteModel = new CompteModel();
         $c1 = $compteModel->find($compte1Id);
@@ -190,6 +192,11 @@ class OperationModel extends Model
             // $commissionTemporaire = 0.1 * $montant;
 
         } else {
+            $epargneModel = new MvtEpargneModel();
+            $epargneData["id_compte"] = $c2['id'];
+            $epargneData['montant'] = $montant * $c2['epargne'];
+            $toEpargne = $epargneData['montant'];
+            $epargneModel->save($epargneData);
             $config = $configModel->where('cle', 'promotion')->first();
             $fraisTemporaires = (float)(($tranche['frais'] ?? 0)) - (float) (($tranche['frais'] ?? 0) * $config['valeur']);
             $commissionTemporaire = 0;
@@ -219,7 +226,8 @@ class OperationModel extends Model
             'frais'      => $fraisTemporaires,
             'id_operateur' => $p2['id_operateur'] ?? null,
             'commission' => $commissionTemporaire,
-            'date_track' => date('Y-m-d')
+            'date_track' => date('Y-m-d'),
+            'to_epargne' => $toEpargne
         ]);
 
         $this->db->table('operation')->insert([

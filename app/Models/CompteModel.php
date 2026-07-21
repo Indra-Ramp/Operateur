@@ -8,10 +8,11 @@ class CompteModel extends Model
 {
     protected $table         = 'compte';
     protected $primaryKey    = 'id';
-    protected $allowedFields = ['tel'];
+    protected $allowedFields = ['tel', 'epargne'];
 
     protected $validationRules = [
         'tel' => 'required|exact_length[10]|numeric|is_unique[compte.tel,id,{id}]',
+        // 'id' => 'greater_than_equal_to[-1]'
     ];
 
     protected $validationMessages = [

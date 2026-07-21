@@ -94,3 +94,15 @@ create table config(
 
 insert into config(cle, valeur)  VALUES
 ('promotion', 0.1);
+
+ALTER TABLE compte ADD epargne NUMBER;
+
+CREATE TABLE mvt_epargne (
+    id INTEGER PRIMARY KEY,
+    id_compte INTEGER,
+    date_mvt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    montant NUMBER,
+    FOREIGN KEY (id_compte) REFERENCES compte(id)
+);
+
+ALTER TABLE operation ADD to_epargne NUMBER;

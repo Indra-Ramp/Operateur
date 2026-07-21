@@ -129,7 +129,7 @@
 <nav class="hidden md:flex gap-xl h-full">
 <a class="flex items-center h-full text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary transition-colors" href="/client/dashboard">Dashboard</a>
 <a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="/client/transactions">Transactions</a>
-<a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="#">Cards</a>
+<a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="/client/epargne">Epargne</a>
 <a class="flex items-center h-full text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors px-sm" href="#">Settings</a>
 </nav>
 <div class="flex items-center gap-md">
