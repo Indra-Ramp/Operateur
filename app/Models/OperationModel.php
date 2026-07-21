@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
+use App\Models\CommissionModel;
+use App\Models\PrefixeModel;
 
 class OperationModel extends Model
 {
@@ -37,7 +39,7 @@ class OperationModel extends Model
             ->get()->getRow()->montant ?? 0;
 
         $sorties = $this->db->table('operation o')
-            ->select('SUM(COALESCE(o.montant, 0)) + SUM(COALESCE(o.frais, 0)) as total_sorties')
+            ->select('SUM(COALESCE(o.montant, 0)) + SUM(COALESCE(o.frais, 0) + COALESCE(o.commission, 0)) as total_sorties')
             ->join('type_operation t', 't.id = o.id_type')
             ->whereIn('t.label', [self::TYPE_RETRAIT, self::TYPE_TRANSFERT])
             ->where('o.id_compte1', $idCompte)
@@ -153,18 +155,22 @@ class OperationModel extends Model
         $prefixe1 = substr((string)$c1['tel'], 0, 3);
         $prefixe2 = substr((string)$c2['tel'], 0, 3);
 
+        $prefixeModel = new PrefixeModel();
+        $p1 = $prefixeModel->where('label', $prefixe1)->first();
+        $p2 = $prefixeModel->where('label', $prefixe2)->first();
+
         $commissionTemporaire = 0.0;
-        if($prefixe1 != $prefixe2){
-            // $commissionModel = new CommissionModel();
-            // $commission1 = $commissionModel->getCommissionByOperateur($prefixe1);
-            // $commission2 = $commissionModel->getCommissionByOperateur($prefixe2);
+        if($p1['id_operateur'] != $p2['id_operateur']){
+            $commissionModel = new CommissionModel();
 
-            // if (!$commission2) {
-            //     return ['success' => false, 'message' => 'Commissions introuvables pour l\'operateur.'];
-            // }
+            $commission2 = $commissionModel->getCommissionByOperateur($p2['id_operateur']);
 
-            // $commissionTemporaire = $montant * ($commission2['perc']);
-            $commissionTemporaire = 0.1 * $montant;
+            if (!$commission2) {
+                return ['success' => false, 'message' => 'Commissions introuvables pour l\'operateur.'];
+            }
+
+            $commissionTemporaire = $montant * ($commission2['perc']);
+            // $commissionTemporaire = 0.1 * $montant;
 
         } else {
             $commissionTemporaire = 0;
@@ -201,6 +207,7 @@ class OperationModel extends Model
             'id_compte2' => $compte2Id, 
             'montant'    => $montantEnregistre1,
             'frais'      => $fraisTemporaires,
+            'id_operateur' => $p2['id_operateur'] ?? null,
             'commission' => $commissionTemporaire,
             'date_track' => date('Y-m-d')
         ]);
