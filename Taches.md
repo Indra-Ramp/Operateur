@@ -47,11 +47,18 @@
 - login client:
     
 - Faire les depots, retraits, transfert (automatique)
-- voir solde (reste de l'argent dans le compte)
-- Affichage de l'historique du compte
+- Creation des fonction retrait, depot, transfert
+- Creation du fonction getSolde()
+- Affichage de l'historique dans dashboard 
 
 # Operateur - V2
 ## ETU004086
+- Par retrait -> ajouter frais (bool) 
+- Appliquer la condition de frais dans transfert
+- Creation de ajax pour l'affichage multiple
+- Creation de fonction transfert multiple 
+- Correction de getSolde(domme montant + frais + commission)
+- Creation de controller
 
 ## ETU004045
 - Creation table operateurs (id, label)

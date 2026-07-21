@@ -41,7 +41,7 @@
 <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined text-on-secondary-container" data-icon="send">send</span>
 </div>
-<span class="font-bold text-on-surface">Transfer</span>
+<span class="font-bold text-on-surface">Transaction</span>
 </a>
 <!-- <button class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl smoky-emerald-shadow flex flex-col items-center justify-center gap-sm hover:border-primary transition-all group">
 <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -83,11 +83,11 @@
 <h3 class="font-headline-md text-headline-md">Transaction History</h3>
 <div class="flex flex-wrap items-center gap-sm">
 <!-- Date Range Filter -->
-<div class="relative">
+<!-- <div class="relative">
 <input class="bg-surface border border-outline-variant rounded-lg px-md py-sm text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none" type="date"/>
-</div>
+</div> -->
 <!-- Operation Type Dropdown -->
-<div class="relative">
+<!-- <div class="relative">
 <select class="bg-surface border border-outline-variant rounded-lg pl-md pr-xl py-sm text-sm appearance-none focus:ring-2 focus:ring-primary focus:border-primary outline-none cursor-pointer">
 <option value="">All Operations</option>
 <option value="Transfer">Transfer</option>
@@ -99,7 +99,7 @@
 <button class="bg-primary text-white px-md py-sm rounded-lg font-bold text-sm flex items-center gap-xs hover:scale-95 duration-150">
 <span class="material-symbols-outlined text-sm" data-icon="download">download</span>
                             Export
-                        </button>
+                        </button> -->
 </div>
 </div>
 <div class="overflow-x-auto custom-scrollbar">
@@ -111,7 +111,7 @@
 <th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Recipient / Sender</th>
 <th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Amount</th>
 <th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant">Status</th>
-<th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant text-right">Actions</th>
+<!-- <th class="px-md py-md font-label-md text-label-md text-on-surface-variant uppercase border-b border-outline-variant text-right">Actions</th> -->
 </tr>
 </thead>
 <tbody class="divide-y divide-outline-variant/30">
@@ -164,9 +164,9 @@
             <td class="px-md py-md">
                 <span class="<?= $statusClass ?> px-sm py-1 rounded-full text-xs font-bold uppercase"><?= $statusText ?></span>
             </td>
-            <td class="px-md py-md text-right">
+            <!-- <td class="px-md py-md text-right">
                 <button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
-            </td>
+            </td> -->
         </tr>
     <?php endforeach; ?>
 <?php else: ?>
