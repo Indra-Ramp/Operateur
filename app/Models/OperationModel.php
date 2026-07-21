@@ -101,7 +101,7 @@ class OperationModel extends Model
             ->countAllResults();
     }
 
-    public function retrait($compteId, $montant)
+    public function retrait($compteId, $montant, $inclureFrais = false)
     {
         if ($compteId <= 0 || $montant <= 0) {
             return ['success' => false, 'message' => 'Données invalides.'];
@@ -119,11 +119,16 @@ class OperationModel extends Model
             return ['success' => false, 'message' => 'Solde insuffisant pour ce retrait.'];
         }
 
+        $montantNet = $montant;
+        if($inclureFrais) {
+            $montantNet = $montant - $fraisTemporaires;
+        }
+        // Enregistrement de l'opération
         $saved = $this->insert([
             'id_type'    => 1,
             'id_compte1' => $compteId,
             'id_compte2' => null,
-            'montant'    => $montant,
+            'montant'    => $montantNet,
             'frais'      => $fraisTemporaires,
             'date_track' => date('Y-m-d')
         ]);
