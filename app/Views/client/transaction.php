@@ -1,131 +1,5 @@
-<!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>MobileMoney - New Transaction</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .step-transition {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(229, 231, 235, 0.5);
-        }
-    </style>
-<script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      "primary-fixed-dim": "#4edea3",
-                      "on-tertiary": "#ffffff",
-                      "tertiary": "#2b6954",
-                      "on-primary-fixed": "#002113",
-                      "surface-container-highest": "#e1e3e4",
-                      "on-primary-container": "#00422b",
-                      "surface-container-high": "#e7e8e9",
-                      "on-surface-variant": "#3c4a42",
-                      "surface-container": "#edeeef",
-                      "inverse-on-surface": "#f0f1f2",
-                      "on-secondary-fixed-variant": "#005137",
-                      "tertiary-fixed-dim": "#95d3ba",
-                      "inverse-primary": "#4edea3",
-                      "on-secondary": "#ffffff",
-                      "on-error-container": "#93000a",
-                      "outline-variant": "#bbcabf",
-                      "on-background": "#191c1d",
-                      "on-tertiary-fixed": "#002117",
-                      "surface-variant": "#e1e3e4",
-                      "surface-dim": "#d9dadb",
-                      "error": "#ba1a1a",
-                      "inverse-surface": "#2e3132",
-                      "surface": "#f8f9fa",
-                      "primary": "#006c49",
-                      "primary-container": "#10b981",
-                      "surface-container-low": "#f3f4f5",
-                      "tertiary-fixed": "#b0f0d6",
-                      "on-error": "#ffffff",
-                      "on-primary-fixed-variant": "#005236",
-                      "secondary": "#006c4a",
-                      "secondary-fixed": "#85f8c4",
-                      "on-surface": "#191c1d",
-                      "secondary-fixed-dim": "#68dba9",
-                      "tertiary-container": "#71af97",
-                      "on-tertiary-fixed-variant": "#0b513d",
-                      "secondary-container": "#82f5c1",
-                      "on-primary": "#ffffff",
-                      "primary-fixed": "#6ffbbe",
-                      "on-tertiary-container": "#004231",
-                      "error-container": "#ffdad6",
-                      "background": "#f8f9fa",
-                      "surface-tint": "#006c49",
-                      "outline": "#6c7a71",
-                      "surface-bright": "#f8f9fa",
-                      "on-secondary-fixed": "#002114",
-                      "surface-container-lowest": "#ffffff",
-                      "on-secondary-container": "#00714e"
-              },
-              "borderRadius": {
-                      "DEFAULT": "0.25rem",
-                      "lg": "0.5rem",
-                      "xl": "0.75rem",
-                      "full": "9999px"
-              },
-              "spacing": {
-                      "container-padding": "24px",
-                      "gutter": "16px",
-                      "base": "4px",
-                      "lg": "24px",
-                      "xs": "4px",
-                      "sm": "8px",
-                      "xl": "40px",
-                      "md": "16px"
-              },
-              "fontFamily": {
-                      "label-md": ["JetBrains Mono"],
-                      "body-md": ["Inter"],
-                      "headline-lg": ["Inter"],
-                      "body-lg": ["Inter"],
-                      "headline-md": ["Inter"],
-                      "display": ["Inter"],
-                      "headline-lg-mobile": ["Inter"]
-              },
-              "fontSize": {
-                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
-                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                      "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
-                      "display": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
-              }
-            },
-          },
-        }
-    </script>
-</head>
-<body class="bg-surface text-on-surface font-body-md min-h-screen">
-<!-- TopNavBar -->
-<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding h-16 bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-primary font-bold text-headline-md" data-icon="account_balance_wallet">account_balance_wallet</span>
-<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">MobileMoney</span>
-</div>
-<div class="flex items-center gap-md">
-<a class="font-label-md text-on-surface-variant hover:text-primary transition-colors" href="/client/dashboard">Dashboard</a>
-<a class="text-primary font-label-md hover:underline" href="/client/logout">Logout</a>
-</div>
-</header>
+<?= $this->extend('client/navbar') ?>
+<?= $this->section('container') ?>
 <main class="pt-24 pb-12 px-container-padding max-w-4xl mx-auto">
 <!-- Dashboard Header Context -->
 <div class="mb-xl text-center md:text-left">
@@ -303,7 +177,7 @@ Inclure les frais de retrait dans le montant envoyé <span class="text-on-surfac
 </div>
 </div>
 <!-- Security Tip Card -->
-<div class="bg-tertiary-container text-on-tertiary-container p-lg rounded-xl border border-tertiary">
+<!-- <div class="bg-tertiary-container text-on-tertiary-container p-lg rounded-xl border border-tertiary">
 <div class="flex items-start gap-md">
 <span class="material-symbols-outlined mt-base" data-icon="verified_user">verified_user</span>
 <div>
@@ -311,7 +185,7 @@ Inclure les frais de retrait dans le montant envoyé <span class="text-on-surfac
 <p class="text-sm opacity-90">Always verify the recipient's phone number before confirming. MobileMoney will never ask for your PIN via SMS.</p>
 </div>
 </div>
-</div>
+</div> -->
 </div>
 </div>
 </main>
@@ -489,5 +363,6 @@ Inclure les frais de retrait dans le montant envoyé <span class="text-on-surfac
         // e.preventDefault() and only ever showed a fake success state without
         // ever sending the transaction to the server.
     </script>
-</body>
-</html>
+
+
+<?= $this->endSection() ?>
