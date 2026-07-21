@@ -15,7 +15,8 @@
             $compteModel = new CompteModel();
             $compte = session()->get('compte');
             $compte['epargne'] = $post['epargne'];
-            $compteModel->save($compte);
+            $compteModel
+            ->update($compte['id'], ['epargne' => $compte['epargne']]);
             session()->set('compte', $compteModel->find($compte['id']));
             return redirect()->back();
         }
