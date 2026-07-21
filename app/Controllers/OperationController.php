@@ -50,6 +50,7 @@ class OperationController extends BaseController
     }
 
     public function retrait(){
+        $inclureFrais = (bool) $this->request->getPost('inclure_frais');
         $operationModel = new OperationModel();
         $compte = session()->get('compte');
         $compteId = isset($compte['id']) ? (int) $compte['id'] : null;
@@ -65,7 +66,7 @@ class OperationController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Veuillez saisir un montant valide.');
         }
 
-        $result = $operationModel->retrait($compteId, $montant);
+        $result = $operationModel->retrait($compteId, $montant, $inclureFrais);
 
         return redirect()->to('/client/dashboard')->with($result['success'] ? 'success' : 'error', $result['message']);
     }

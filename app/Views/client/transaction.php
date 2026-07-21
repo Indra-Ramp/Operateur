@@ -375,7 +375,7 @@ Inclure les frais de retrait dans le montant envoyé <span class="text-on-surfac
                 amountLabel.innerText = '2. Transaction Amount';
                 form.action = '/client/retrait';
                 operationType.value = 'retrait';
-                fraisOptionWrapper.classList.add('hidden');
+                // fraisOptionWrapper.classList.add('hidden');
             }
         }
 
