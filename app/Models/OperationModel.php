@@ -149,6 +149,7 @@ class OperationModel extends Model
         $c1 = $compteModel->find($compte1Id);
         $c2 = $compteModel->find($compte2Id);
 
+        
         if (!$c2) {
             $compte2Id = $compteModel->insert(['tel' => $c2['tel']]);
             if (!$compte2Id) {
@@ -164,6 +165,17 @@ class OperationModel extends Model
         $p1 = $prefixeModel->where('label', $prefixe1)->first();
         $p2 = $prefixeModel->where('label', $prefixe2)->first();
 
+        $configModel = new ConfigModel();
+
+        $tranche = $this->db->table('tranche')
+            ->where('id_type', 2)
+            ->where('montant1 <=', $montant)
+            ->where('montant2 >=', $montant)
+            ->get()
+            ->getRowArray();
+
+        $fraisTemporaires = (float)($tranche['frais'] ?? 0);
+
         $commissionTemporaire = 0.0;
         if($p1['id_operateur'] != $p2['id_operateur']){
             $commissionModel = new CommissionModel();
@@ -178,17 +190,10 @@ class OperationModel extends Model
             // $commissionTemporaire = 0.1 * $montant;
 
         } else {
+            $config = $configModel->where('cle', 'promotion')->first();
+            $fraisTemporaires = (float)(($tranche['frais'] ?? 0)) - (float) (($tranche['frais'] ?? 0) * $config['valeur']);
             $commissionTemporaire = 0;
         }
-
-        $tranche = $this->db->table('tranche')
-            ->where('id_type', 2)
-            ->where('montant1 <=', $montant)
-            ->where('montant2 >=', $montant)
-            ->get()
-            ->getRowArray();
-
-        $fraisTemporaires = (float)($tranche['frais'] ?? 0);
 
         if ($inclureFrais) {
             $montantEnvoye      = $montant - $fraisTemporaires;

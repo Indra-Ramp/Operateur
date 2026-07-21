@@ -86,3 +86,11 @@ CREATE TABLE commission (
     perc FLOAT,
     FOREIGN KEY (id_operateur) REFERENCES operateur(id)
 );
+
+create table config(
+    cle VARCHAR(50),
+    valeur FLOAT
+);
+
+insert into config(cle, valeur)  VALUES
+('promotion', 0.1);

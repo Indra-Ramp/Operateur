@@ -66,3 +66,12 @@
 - Creation table commission (id, id_operateur, perc)
 - ajout de frais, commission, id_operateur dans la table operation
 - Creation de fonction stat dans FraisController.php
+
+Promotion:
+- Frais de transfert 
+- configuration dans la base 
+- frais de transfert change lors du transfert 
+
+RG :
+  - Lorsque meme operateur : frais - frais * promotion
+  - diff operateur : frais temporaire = frais temporaire
